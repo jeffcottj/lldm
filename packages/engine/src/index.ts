@@ -1,6 +1,7 @@
 export * from "./character-creation.js";
 export * from "./apply-event.js";
 export * from "./combat-decisions.js";
+export * from "./compensation.js";
 export * from "./core-rules.js";
 export * from "./decide-command.js";
 export * from "./invariants.js";

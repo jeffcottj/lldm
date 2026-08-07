@@ -37,6 +37,7 @@ import {
   EstablishSocialStateCommandSchema,
   SpendLeverageCommandSchema,
 } from "./domains/social.js";
+import { UndoTransactionCommandSchema } from "./undo.js";
 
 export const GameCommandSchema = Type.Union([
   ResolveCheckCommandSchema,
@@ -65,6 +66,7 @@ export const GameCommandSchema = Type.Union([
   ContributeRitualCommandSchema,
   ResolveRitualCommandSchema,
   InterruptRitualCommandSchema,
+  UndoTransactionCommandSchema,
 ]);
 export { GameCommandSchema as ClientCommandSchema };
 

@@ -1,4 +1,14 @@
-import { type EventId, type LegalActionId, sha256Hex } from "@lldm/contracts";
+import {
+  type CampaignId,
+  type EventId,
+  type LegalActionId,
+  sha256Hex,
+  type TransactionId,
+} from "@lldm/contracts";
+import {
+  PHASE_1_CONTENT_MANIFEST_HASH,
+  PHASE_1_DEFINITIONS,
+} from "@lldm/content";
 import { decideCommand } from "@lldm/engine";
 import type {
   EngineDeciderPort,
@@ -7,6 +17,7 @@ import type {
   SeedAccessPort,
 } from "../ports/index.js";
 import { drawHmacSha256V1 } from "../randomness/hmac-sha256-v1.js";
+import { phase1ProjectionPort } from "./projections.js";
 
 export const systemClock = {
   now: () => new Date().toISOString(),
@@ -37,9 +48,23 @@ export const authoritativeEngineDecider: EngineDeciderPort = {
   decide: decideCommand,
 };
 
+export const phase1ContentManifestPort = {
+  resolve: (hash: string) =>
+    hash === PHASE_1_CONTENT_MANIFEST_HASH
+      ? {
+          content_manifest_hash: PHASE_1_CONTENT_MANIFEST_HASH,
+          definitions: PHASE_1_DEFINITIONS,
+        }
+      : null,
+};
+
+export { PHASE_1_CONTENT_MANIFEST_HASH };
+
 export const emptyProjectionPort: ProjectionPort = {
   project: () => [],
 };
+
+export const authoritativeProjectionPort = phase1ProjectionPort;
 
 export function legalActionIdFrom(
   identity: IdentityPort,
@@ -49,6 +74,21 @@ export function legalActionIdFrom(
   return identity.allocate(
     "legal_action",
     transactionId,
+    0,
+    stableKey,
+  ) as LegalActionId;
+}
+
+export function legalActionIdForCampaign(
+  identity: IdentityPort,
+  campaignId: CampaignId,
+  stableKey: string,
+): LegalActionId {
+  const scope =
+    `transaction_legal_actions_${sha256Hex(campaignId).slice(0, 24)}` as TransactionId;
+  return identity.allocate(
+    "legal_action",
+    scope,
     0,
     stableKey,
   ) as LegalActionId;

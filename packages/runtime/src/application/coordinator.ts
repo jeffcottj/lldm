@@ -8,13 +8,13 @@ import {
   GameEventSchema,
   type GameState,
   SCHEMA_VERSION,
-  type StateHash,
   taggedSha256,
   type ValidationIssue,
   validateCommittedTransactionRecord,
   validateValue,
 } from "@lldm/contracts";
-import { applyGameEvent } from "@lldm/engine";
+import { applyGameEvent, planTransactionCompensation } from "@lldm/engine";
+import { hashGameState } from "../hashing/state-hash.js";
 import type {
   AtomicCommandStore,
   AtomicStorePort,
@@ -32,10 +32,10 @@ import type {
 import {
   authoritativeEngineDecider,
   deterministicIdentityPort,
-  emptyProjectionPort,
+  authoritativeProjectionPort,
   eventIdFrom,
   hmacRandomPort,
-  legalActionIdFrom,
+  legalActionIdForCampaign,
   storedSeedAccess,
   systemClock,
 } from "./defaults.js";
@@ -53,10 +53,6 @@ export interface CommandCoordinatorPorts {
   readonly random?: RandomPort;
   readonly decider?: EngineDeciderPort;
   readonly projector?: ProjectionPort;
-}
-
-function stateHash(state: GameState): StateHash {
-  return taggedSha256(canonicalJson(state)) as StateHash;
 }
 
 function malformed(
@@ -123,7 +119,7 @@ function allocateDecisionFacts(
       0,
     ) as RuntimeAllocatedDecisionFacts["scar_id"],
     legal_action_id_for: (stableKey) =>
-      legalActionIdFrom(identity, transactionId, stableKey),
+      legalActionIdForCampaign(identity, command.campaign_id, stableKey),
     event_id_for: (transactionIndex) =>
       eventIdFrom(identity, transactionId, transactionIndex),
   };
@@ -211,6 +207,8 @@ function commitDecision(input: {
   readonly committedAt: string;
   readonly facts: RuntimeAllocatedDecisionFacts;
   readonly accepted: boolean;
+  readonly transactionOutcome?: "accepted" | "undo";
+  readonly undoTargetTransactionId?: GameCommand["transaction_id"];
   readonly rejectionCode?: CommandRejectionCode;
   readonly safeDetail?: string;
   readonly domainEvents: readonly {
@@ -220,7 +218,7 @@ function commitDecision(input: {
   readonly projector: ProjectionPort;
   readonly catalog: NonNullable<ReturnType<ContentManifestPort["resolve"]>>;
 }): CommittedCommand {
-  const preStateHash = stateHash(input.state);
+  const preStateHash = hashGameState(input.state);
   const events = envelopeEvents({
     command: input.command,
     firstRevision: input.revision + 1,
@@ -234,8 +232,9 @@ function commitDecision(input: {
     eventIdFor: input.facts.event_id_for,
   });
   const postState = applyEvents(input.state, events);
-  const postStateHash = stateHash(postState);
+  const postStateHash = hashGameState(postState);
   const lastRevision = input.revision + events.length;
+  const transactionOutcome = input.transactionOutcome ?? "accepted";
   const transactionCandidate = {
     schema_version: SCHEMA_VERSION,
     campaign_id: input.command.campaign_id,
@@ -248,13 +247,18 @@ function commitDecision(input: {
     pre_state_hash: preStateHash,
     post_state_hash: postStateHash,
     committed_at: input.committedAt,
-    ...(input.accepted
-      ? { outcome: "accepted" as const }
-      : {
-          outcome: "rejected" as const,
-          rejection_code: input.rejectionCode,
-          safe_detail: input.safeDetail,
-        }),
+    ...(transactionOutcome === "undo"
+      ? {
+          outcome: "undo" as const,
+          undo_target_transaction_id: input.undoTargetTransactionId,
+        }
+      : input.accepted
+        ? { outcome: "accepted" as const }
+        : {
+            outcome: "rejected" as const,
+            rejection_code: input.rejectionCode,
+            safe_detail: input.safeDetail,
+          }),
   };
   const validatedTransaction =
     validateCommittedTransactionRecord(transactionCandidate);
@@ -304,7 +308,7 @@ export class CommandCoordinator {
       seed_access: ports.seed_access ?? storedSeedAccess,
       random: ports.random ?? hmacRandomPort,
       decider: ports.decider ?? authoritativeEngineDecider,
-      projector: ports.projector ?? emptyProjectionPort,
+      projector: ports.projector ?? authoritativeProjectionPort,
     };
   }
 
@@ -357,7 +361,7 @@ export class CommandCoordinator {
             "The command campaign does not exist in this store.",
           );
         }
-        if (campaign.state_hash !== stateHash(campaign.state)) {
+        if (campaign.state_hash !== hashGameState(campaign.state)) {
           return failure(
             "recovery_required",
             "The stored campaign head does not match its mechanical state hash.",
@@ -402,6 +406,76 @@ export class CommandCoordinator {
             domainEvents: [],
           });
           return { result_kind: "committed_rejection" as const, commit };
+        }
+
+        if (command.kind === "undo_transaction") {
+          const undo = store.loadUndoCandidate(
+            command.campaign_id,
+            command.payload.target_transaction_id,
+          );
+          if (undo.status === "none") {
+            const commit = commitDecision({
+              ...common,
+              accepted: false,
+              rejectionCode: "undo_no_eligible_transaction",
+              safeDetail: "No accepted state-changing transaction is eligible.",
+              domainEvents: [],
+            });
+            return { result_kind: "committed_rejection" as const, commit };
+          }
+          if (undo.status === "target_not_latest") {
+            const commit = commitDecision({
+              ...common,
+              accepted: false,
+              rejectionCode: "undo_target_not_latest",
+              safeDetail: `Only latest transaction ${undo.latest_transaction_id} is eligible.`,
+              domainEvents: [],
+            });
+            return { result_kind: "committed_rejection" as const, commit };
+          }
+          if (undo.candidate.transaction.outcome === "undo") {
+            const commit = commitDecision({
+              ...common,
+              accepted: false,
+              rejectionCode: "undo_target_is_undo",
+              safeDetail: "A compensation transaction cannot be undone.",
+              domainEvents: [],
+            });
+            return { result_kind: "committed_rejection" as const, commit };
+          }
+          if (undo.candidate.already_compensated) {
+            const commit = commitDecision({
+              ...common,
+              accepted: false,
+              rejectionCode: "undo_already_compensated",
+              safeDetail: "The target transaction was already compensated.",
+              domainEvents: [],
+            });
+            return { result_kind: "committed_rejection" as const, commit };
+          }
+          const plan = planTransactionCompensation({
+            state: campaign.state,
+            target_transaction_id: undo.candidate.transaction.transaction_id,
+            events: undo.candidate.events,
+          });
+          if (!plan.accepted) {
+            const commit = commitDecision({
+              ...common,
+              accepted: false,
+              rejectionCode: plan.rejection_code,
+              safeDetail: plan.safe_detail,
+              domainEvents: [],
+            });
+            return { result_kind: "committed_rejection" as const, commit };
+          }
+          const commit = commitDecision({
+            ...common,
+            accepted: true,
+            transactionOutcome: "undo",
+            undoTargetTransactionId: undo.candidate.transaction.transaction_id,
+            domainEvents: plan.events,
+          });
+          return { result_kind: "committed_acceptance" as const, commit };
         }
 
         let seed: Uint8Array | null = null;

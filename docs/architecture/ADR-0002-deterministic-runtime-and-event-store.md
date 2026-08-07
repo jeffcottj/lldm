@@ -2,11 +2,11 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
-Phase 0 established pure executable rules and centralized TypeBox contracts, but LLDM cannot yet execute a replayable campaign across process restarts. Phase 1 needs local transaction coordination and persistence without moving mechanical authority into an application or database adapter.
+Phase 0 established pure executable rules and centralized TypeBox contracts. Phase 1 added local transaction coordination and persistence capable of replaying a campaign across process restarts without moving mechanical authority into an application or database adapter.
 
 ## Decision
 
@@ -32,11 +32,11 @@ Canonical history is one campaign-scoped append-only event stream. A structurall
 
 Campaigns pin an immutable content manifest. Simulated draws use a versioned domain-separated HMAC-SHA-256 algorithm and record reproducible evidence without exposing the campaign seed. Physical rolls commit a pending request before a separate nonce-bound result command. Mechanical state uses versioned canonical JSON and SHA-256 hashes at every transaction boundary.
 
-SQLite is the local canonical store. Migration 1 will use foreign keys, WAL mode, explicit durability and busy-timeout settings, immutable checksummed migrations, and verified backup-before-migrate behavior. Normal execution will refuse incompatible schemas rather than auto-migrate. Snapshots and audience-filtered projections are disposable derived data, validated and rebuilt from canonical events.
+SQLite is the local canonical store. Migration 1 uses foreign keys, WAL mode, full synchronous durability, a busy timeout, an immutable checksum, and verified backup-before-migrate behavior. Normal execution refuses pending or incompatible schemas rather than auto-migrating. Scene, session, and fixed-threshold snapshots are disposable validated replay accelerators with explicit full-replay fallback. Public-TV, eligible-seat-private, and host-control projections are filtered derived data, replaced atomically with each transaction and rebuilt from canonical events.
 
 Undo appends typed compensating events for only the latest eligible state-changing transaction. It never rewrites or deletes canonical history.
 
-This ADR remains Proposed until Phase 1 implements and verifies these claims. At this stage only the package boundaries and CLI help/version seam exist.
+The scriptable CLI composes the runtime for explicit migration, campaign, command, scenario, replay/audit, snapshot, projection, and undo operations. It is an operational and test seam, not a room application. The fresh-database Phase 1 scenario and focused failure tests verify the decisions above; deployable host behavior remains a Phase 2 concern.
 
 ## Alternatives Considered
 

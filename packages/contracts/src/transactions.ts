@@ -21,6 +21,13 @@ export const COMMAND_REJECTION_CODES = [
   "expected_revision_mismatch",
   "required_content_unavailable",
   "storage_migration_required",
+  "undo_already_compensated",
+  "undo_non_invertible_dependency",
+  "undo_no_eligible_transaction",
+  "undo_permanent_death",
+  "undo_physical_result",
+  "undo_target_is_undo",
+  "undo_target_not_latest",
 ] as const;
 
 export const NON_CANONICAL_COMMAND_FAILURE_CODES = [

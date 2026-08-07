@@ -276,8 +276,21 @@ export const PhysicalRollRequestedEventSchema = eventEnvelope(
   }),
 );
 
+export const PhysicalRollCancelledEventSchema = eventEnvelope(
+  Type.Literal("physical_roll_cancelled"),
+  strictObject({
+    pending_check_id: PendingCheckIdSchema,
+    reason: Type.Literal("transaction_compensation"),
+  }),
+);
+
 export const SparkSpentEventSchema = eventEnvelope(
   Type.Literal("spark_spent"),
+  strictObject({ actor_id: ActorIdSchema }),
+);
+
+export const SparkRestoredByCompensationEventSchema = eventEnvelope(
+  Type.Literal("spark_restored_by_compensation"),
   strictObject({ actor_id: ActorIdSchema }),
 );
 

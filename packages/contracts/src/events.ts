@@ -5,11 +5,14 @@ import {
 } from "./audit-events.js";
 import {
   CheckResolvedEventSchema,
+  PhysicalRollCancelledEventSchema,
   PhysicalRollRequestedEventSchema,
+  SparkRestoredByCompensationEventSchema,
   SparkSpentEventSchema,
 } from "./checks.js";
 import {
   ActionSlotSpentEventSchema,
+  ActionSlotRestoredEventSchema,
   ActivationStartedEventSchema,
   ActorMovedEventSchema,
   BossOverlayActivatedEventSchema,
@@ -63,13 +66,16 @@ import {
   SocialCheckPendingEventSchema,
   SocialStateEstablishedEventSchema,
 } from "./domains/social.js";
+import { TransactionCompensatedEventSchema } from "./undo.js";
 
 export const GameEventSchema = Type.Union([
   CommandAcceptedEventSchema,
   CommandRejectedEventSchema,
   CheckResolvedEventSchema,
+  PhysicalRollCancelledEventSchema,
   PhysicalRollRequestedEventSchema,
   SparkSpentEventSchema,
+  SparkRestoredByCompensationEventSchema,
   CharacterMaterializedEventSchema,
   SignificantGearSpentEventSchema,
   ResourceChangedEventSchema,
@@ -83,6 +89,7 @@ export const GameEventSchema = Type.Union([
   CombatStartedEventSchema,
   ActivationStartedEventSchema,
   ActionSlotSpentEventSchema,
+  ActionSlotRestoredEventSchema,
   ActorMovedEventSchema,
   EnemyActionSelectedEventSchema,
   CombatActionPendingEventSchema,
@@ -115,6 +122,7 @@ export const GameEventSchema = Type.Union([
   RitualReadyEventSchema,
   RitualResolvedEventSchema,
   RitualInterruptedEventSchema,
+  TransactionCompensatedEventSchema,
 ]);
 
 export type GameEvent = Static<typeof GameEventSchema>;

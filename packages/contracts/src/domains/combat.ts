@@ -531,6 +531,14 @@ export const ActionSlotSpentEventSchema = eventEnvelope(
     slot: ActionSlotSchema,
   }),
 );
+export const ActionSlotRestoredEventSchema = eventEnvelope(
+  Type.Literal("action_slot_restored"),
+  strictObject({
+    ...CombatCommandCommon,
+    actor_id: ActorIdSchema,
+    slot: ActionSlotSchema,
+  }),
+);
 export const ActorMovedEventSchema = eventEnvelope(
   Type.Literal("actor_moved"),
   strictObject({

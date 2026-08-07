@@ -190,4 +190,23 @@ Interrupting a ritual closes it as interrupted. Paid costs remain spent, unpaid 
 
 A round condition expires at the next round transition, a scene condition at the next scene transition, and an until-removed condition only through an explicit removal effect.
 
+## Deterministic transactions and local persistence
+
+| Versioned boundary | Current value |
+| --- | --- |
+| Serialized schema | 1 |
+| Transport protocol | 1 |
+| Mechanical state schema | 1 |
+| Canonical JSON | 1 |
+| Simulated randomness | `hmac_sha256_v1` |
+| SQLite migration | 1 (`phase_1_event_store`, checksum `sha256:3e2d71c32343c68e1c57e231c2c3358f8754cd617b7d24404bb2741fef192d00`) |
+
+A command ID permanently binds its validated canonical JSON and hash. An exact retry returns the already stored transaction without consulting the clock, content catalog, engine, random source, projector, snapshot policy, entropy, or ID allocator. Reusing either a command ID or transaction ID for different canonical command bytes is an identity collision and appends nothing. A structurally valid stale or illegal command instead commits one typed rejection event with identical pre-state and post-state hashes.
+
+Each accepted, rejected, or compensating-undo command commits one contiguous event range atomically with its command row, transaction record, state head, audience projections, and any triggered snapshot. Events contain resolved mechanical facts; replay applies those events without rerunning command decisions, content lookup, randomness, or physical dice.
+
+Snapshots are validated, disposable replay accelerators written at scene and session boundaries or after 100 events since the latest snapshot. Invalid snapshots produce an explicit diagnostic and full event-replay fallback. Public-TV, eligible-seat-private, and host-control projections are derived at every stream revision and can be rebuilt byte-for-byte without changing canonical history.
+
+Undo never edits or deletes history. It appends typed compensating events only for the latest eligible mechanical transaction; submitted physical dice, permanent death, prior undo, stale targets, and non-invertible dependencies remain non-undoable.
+
 Production paths, rank-three talents, rank-four capstones, broad catalogs, room applications, and generated-fiction systems remain unavailable in Phase 1.

@@ -2,6 +2,7 @@ import {
   PhysicalRollDisclosureSchema,
   ResolvedCheckSchema,
   type CheckAttemptInput,
+  canonicalJson,
   type ContentDefinition,
   type GameCommand,
   type MechanicalEffect,
@@ -352,7 +353,7 @@ function statementsMatch(
   left: readonly { text: string; visibility: string }[],
   right: readonly { text: string; visibility: string }[],
 ): boolean {
-  return JSON.stringify(left) === JSON.stringify(right);
+  return canonicalJson(left) === canonicalJson(right);
 }
 
 export function decideEstablishSocialState(
@@ -631,9 +632,9 @@ export function decideStartRitual(
     ritual.status !== "preparing" ||
     ritual.paid_cost_count !== 0 ||
     ritual.contributor_ids.length !== 0 ||
-    JSON.stringify(definition.payload.requirements) !==
-      JSON.stringify(ritual.requirements) ||
-    JSON.stringify(definition.payload.costs) !== JSON.stringify(ritual.costs) ||
+    canonicalJson(definition.payload.requirements) !==
+      canonicalJson(ritual.requirements) ||
+    canonicalJson(definition.payload.costs) !== canonicalJson(ritual.costs) ||
     definition.payload.target_mode !== ritual.target.kind
   ) {
     return reject("Ritual start facts do not match pinned content.");

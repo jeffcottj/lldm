@@ -73,12 +73,28 @@ export interface AtomicCommitInput {
   readonly projections: readonly RuntimeProjectionDraft[];
 }
 
+export interface RuntimeUndoCandidate {
+  readonly transaction: CommittedTransactionRecord;
+  readonly events: readonly GameEvent[];
+  readonly already_compensated: boolean;
+}
+
 export interface AtomicCommandStore {
   readiness(): StorageReadiness;
   findCommand(commandId: CommandId): StoredCommandRecord | null;
   transactionIdExists(transactionId: TransactionId): boolean;
   loadCampaign(campaignId: CampaignId): RuntimeCampaignHead | null;
   readCampaignSeed(campaignId: CampaignId): Uint8Array | null;
+  loadUndoCandidate(
+    campaignId: CampaignId,
+    targetTransactionId: TransactionId | null,
+  ):
+    | { readonly status: "none" }
+    | {
+        readonly status: "target_not_latest";
+        readonly latest_transaction_id: TransactionId;
+      }
+    | { readonly status: "found"; readonly candidate: RuntimeUndoCandidate };
   commit(input: AtomicCommitInput): void;
 }
 
