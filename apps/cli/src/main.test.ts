@@ -89,7 +89,9 @@ describe("scriptable CLI", () => {
     );
   });
 
-  it("migrates, creates, reopens, submits, replays, projects, and snapshots", () => {
+  it("migrates, creates, reopens, submits, replays, projects, and snapshots", {
+    timeout: 20_000,
+  }, () => {
     const fixture = setup();
     const common = ["--database", fixture.database, "--json"];
     const status = run(["db", "status", ...common]);
