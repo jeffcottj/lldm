@@ -3,12 +3,18 @@
     "playwright.config.ts",
     "vitest.config.ts",
     "scripts/generate-references.ts",
-    "test/no-network.ts"
+    "test/no-network.ts",
+    "test/fixtures/phase-1/floodgate-scenario.json",
+    "test/phase-1-content-engine.test.ts",
+    "test/phase-1-scenario.test.ts",
+    "test/phase-1-simulation.test.ts"
   ],
   "references": [
     { "path": "packages/contracts" },
     { "path": "packages/engine" },
-    { "path": "packages/content" }
+    { "path": "packages/content" },
+    { "path": "packages/runtime" },
+    { "path": "apps/cli" }
   ],
   "extends": "./tsconfig.base.json",
   "compilerOptions": {

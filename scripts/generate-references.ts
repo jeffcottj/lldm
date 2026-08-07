@@ -1,13 +1,26 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import {
+  ARCHETYPE_GUARD_MAXIMA,
   CharacterFoundationSchema,
   OUTCOME_DEGREES,
+  PlayableCharacterStateSchema,
   STANDARD_TARGETS,
 } from "@lldm/contracts";
 import {
   ATTRIBUTE_METADATA,
+  DEFERRED_CONTENT_REGISTRIES,
   DISCIPLINE_METADATA,
   OUTCOME_METADATA,
+  PHASE_1_ARCHETYPES,
+  PHASE_1_CONTENT_MANIFEST,
+  PHASE_1_DEFINITIONS,
+  PHASE_1_ENCOUNTER_DEFINITIONS,
+  PHASE_1_HERITAGE_GIFTS,
+  PHASE_1_NONCOMBAT_DEFINITIONS,
+  PHASE_1_SIGNIFICANT_GEAR,
+  PHASE_1_SIGNATURE_TECHNIQUES,
+  PHASE_1_STARTER_LOADOUTS,
+  PHASE_1_UPBRINGINGS,
   TARGET_METADATA,
 } from "@lldm/content";
 import {
@@ -65,10 +78,17 @@ export function renderMechanicalReference(): string {
   const reasonPrecedence = PHYSICAL_ROLL_REASON_PRECEDENCE.map(
     (reason) => `- ${physicalReasonLabel(reason)}`,
   ).join("\n");
+  const playableFields = Object.keys(PlayableCharacterStateSchema.properties)
+    .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0))
+    .map((field) => `- \`${field}\``)
+    .join("\n");
+  const guardRows = Object.entries(ARCHETYPE_GUARD_MAXIMA).map(
+    ([archetype, maximum]) => [archetype, String(maximum)],
+  );
 
   return `${GENERATED_WARNING}
 
-# LLDM Phase 0 Mechanical Reference
+# LLDM Phase 1 Mechanical Reference
 
 ## Core terms
 
@@ -122,6 +142,14 @@ ${CORE_RULES.spark.text}
 
 ${CORE_RULES.physical_disclosure.text}
 
+## Simulated randomness
+
+### ${CORE_RULES.simulated_randomness.title}
+
+${CORE_RULES.simulated_randomness.text}
+
+The version-1 algorithm identifier is \`hmac_sha256_v1\`. Its length-prefixed, big-endian framing begins with the UTF-8 domain tag \`LLDM random v1\`; bounded integers use 256-bit rejection sampling.
+
 ## Character foundation
 
 ${CORE_RULES.starting_allocations.text}
@@ -130,7 +158,67 @@ The version-1 \`character_foundation\` record contains these canonical fields:
 
 ${characterFields}
 
-The record is a foundation, not a playable character state. Heritage Gift, Upbringing, and archetype values are opaque future-content references. Paths, option effects, advancement, resources, combat statistics, and complete catalogs are deferred beyond Phase 0. Narrative text fields do not grant mechanical bonuses.
+The record is creation input, not playable state. Narrative text fields do not grant mechanical bonuses.
+
+## Playable characters and resources
+
+${CORE_RULES.playable_resources.text}
+
+${markdownTable(["Archetype", "Rank-one Guard maximum"], guardRows)}
+
+The independently versioned \`playable_character_state\` record contains these canonical fields:
+
+${playableFields}
+
+### ${CORE_RULES.significant_gear.title}
+
+${CORE_RULES.significant_gear.text}
+
+### ${CORE_RULES.recovery.title}
+
+${CORE_RULES.recovery.text}
+
+### ${CORE_RULES.rank_advancement.title}
+
+${CORE_RULES.rank_advancement.text}
+
+## Combat
+
+### ${CORE_RULES.combat_flow.title}
+
+${CORE_RULES.combat_flow.text}
+
+### ${CORE_RULES.reaction_priority.title}
+
+${CORE_RULES.reaction_priority.text}
+
+### ${CORE_RULES.death_test.title}
+
+${CORE_RULES.death_test.text}
+
+## Progress, social state, rituals, and conditions
+
+### ${CORE_RULES.challenges.title}
+
+${CORE_RULES.challenges.text}
+
+### ${CORE_RULES.social_shifts.title}
+
+${CORE_RULES.social_shifts.text}
+
+### ${CORE_RULES.ritual_resolution.title}
+
+${CORE_RULES.ritual_resolution.text}
+
+### ${CORE_RULES.ritual_interruption.title}
+
+${CORE_RULES.ritual_interruption.text}
+
+### ${CORE_RULES.condition_duration.title}
+
+${CORE_RULES.condition_duration.text}
+
+Production paths, rank-three talents, rank-four capstones, broad catalogs, room applications, and generated-fiction systems remain unavailable in Phase 1.
 `;
 }
 
@@ -151,13 +239,146 @@ export function renderProbabilityReport(): string {
 
   return `${GENERATED_WARNING}
 
-# LLDM Phase 0 Probability Report
+# LLDM Phase 1 Probability Report
 
 Each row directly enumerates all twenty d20 faces through the authoritative resolution function. Counts are exact integers out of 20; percentages use five percentage points per face.
 
 ${markdownTable(["Target", "Modifier", ...OUTCOME_DEGREES], rows)}
 
 Natural 1 downgrades and natural 20 upgrades, including end-degree clamping, are already included in every row.
+`;
+}
+
+function contentName(id: string): string {
+  const definition = PHASE_1_DEFINITIONS.find(
+    ({ content_definition_id }) => content_definition_id === id,
+  );
+  if (definition === undefined) return id;
+  return definition.kind === "core_term"
+    ? definition.payload.display_name
+    : definition.payload.display_name;
+}
+
+export function renderPlayableContentReference(): string {
+  const archetypeRows = PHASE_1_ARCHETYPES.map((definition) => {
+    if (definition.kind !== "playable_option") {
+      throw new Error("Generated archetype reference received the wrong kind.");
+    }
+    const guard = definition.payload.tactical_effects.find(
+      (effect) =>
+        effect.kind === "adjust_resource" && effect.resource === "guard",
+    );
+    const signature = definition.payload.granted_ability_ids[0];
+    return [
+      definition.payload.display_name,
+      guard?.kind === "adjust_resource" ? String(guard.amount) : "—",
+      signature === undefined ? "—" : contentName(signature),
+      definition.payload.narrative_permissions[0]?.permission ?? "—",
+    ];
+  });
+  const optionRows = [...PHASE_1_HERITAGE_GIFTS, ...PHASE_1_UPBRINGINGS].map(
+    (definition) => {
+      if (definition.kind !== "playable_option") {
+        throw new Error("Generated option reference received the wrong kind.");
+      }
+      return [
+        definition.payload.category === "heritage_gift"
+          ? "Heritage Gift"
+          : "Upbringing",
+        definition.payload.display_name,
+        definition.payload.rule_text,
+        definition.payload.narrative_permissions[0]?.permission ?? "—",
+      ];
+    },
+  );
+  const abilityRows = [
+    ...PHASE_1_SIGNATURE_TECHNIQUES,
+    ...PHASE_1_SIGNIFICANT_GEAR,
+  ].map((definition) => {
+    if (definition.kind !== "ability") {
+      throw new Error("Generated ability reference received the wrong kind.");
+    }
+    return [
+      definition.payload.category === "signature_technique"
+        ? "Signature"
+        : "Significant gear",
+      definition.payload.display_name,
+      definition.payload.action_slot,
+      definition.payload.rule_text,
+    ];
+  });
+  const starterRows = PHASE_1_STARTER_LOADOUTS.map((starter) => {
+    const gear = starter.significant_gear.find(
+      ({ definition }) => definition !== null,
+    )?.definition;
+    return [
+      starter.foundation.display_name,
+      contentName(starter.foundation.archetype_ref),
+      contentName(starter.foundation.heritage_gift_ref),
+      contentName(starter.foundation.upbringing_ref),
+      gear === undefined || gear === null
+        ? "—"
+        : contentName(gear.content_definition_id),
+    ];
+  });
+  const encounterRows = PHASE_1_ENCOUNTER_DEFINITIONS.map((definition) => [
+    definition.kind,
+    definition.payload.display_name,
+    definition.content_definition_id,
+  ]);
+  const noncombatRows = PHASE_1_NONCOMBAT_DEFINITIONS.map((definition) => [
+    definition.kind,
+    definition.payload.display_name,
+    definition.content_definition_id,
+  ]);
+  const deferred = Object.entries(DEFERRED_CONTENT_REGISTRIES)
+    .map(([name]) => `- ${name}`)
+    .join("\n");
+
+  return `${GENERATED_WARNING}
+
+# LLDM Phase 1 Playable Content Reference
+
+## Pinned manifest
+
+- Manifest ID: \`${PHASE_1_CONTENT_MANIFEST.content_manifest_id}\`
+- Manifest hash: \`${PHASE_1_CONTENT_MANIFEST.manifest_hash}\`
+- Canonically sorted definitions: ${PHASE_1_CONTENT_MANIFEST.entries.length}
+- Definition revision: every shipped Phase 1 definition is revision 1
+
+## Rank-one archetypes
+
+${markdownTable(["Archetype", "Guard", "Signature", "Narrative permission"], archetypeRows)}
+
+## Heritage Gifts and Upbringings
+
+${markdownTable(["Category", "Name", "Tactical rule", "Narrative permission"], optionRows)}
+
+## Signature techniques and significant gear
+
+${markdownTable(["Category", "Name", "Slot", "Rule"], abilityRows)}
+
+An occupied narrative gear slot is bound to a pinned significant-gear definition during materialization. A paid ritual gear cost changes that exact mechanical slot from ready to spent; the original foundation text remains canonical history.
+
+## Committed starter loadouts
+
+${markdownTable(["Hero", "Archetype", "Heritage Gift", "Upbringing", "Significant gear"], starterRows)}
+
+## Floodgate encounter definitions
+
+${markdownTable(["Kind", "Name", "Definition ID"], encounterRows)}
+
+## Non-combat vertical slice
+
+${markdownTable(["Kind", "Name", "Definition ID"], noncombatRows)}
+
+The Floodgate Sequence uses Progress 4, Danger 3, and \`resolved_with_cost\` for a simultaneous fill. Gatewarden Nera's declared hard limit cannot be crossed by a roll. Kindle the Echo Lantern requires established fictional position, two participants, the ready Resonant Wick Case, and 1 Supply before resolution.
+
+## Explicitly unavailable production ranks
+
+The following production registries are empty in Phase 1:
+
+${deferred}
 `;
 }
 
@@ -169,6 +390,10 @@ const outputs = [
   {
     path: "docs/generated/probability-report.md",
     contents: renderProbabilityReport(),
+  },
+  {
+    path: "docs/generated/playable-content-reference.md",
+    contents: renderPlayableContentReference(),
   },
 ] as const;
 

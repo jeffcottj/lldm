@@ -4,6 +4,7 @@
     "command_id": "command_resolve_001",
     "transaction_id": "transaction_resolve_001",
     "campaign_id": "campaign_ember_001",
+    "expected_revision": 0,
     "kind": "resolve_check",
     "payload": {
       "request": {
@@ -39,9 +40,82 @@
         "spark_eligible": true,
         "eligible_roller": "seat_sable_001"
       },
-      "die_face": 10,
-      "roll_mode": "simulated"
+      "roll_mode": "simulated",
+      "invoke_spark": false
     }
+  },
+  "command_accepted_event": {
+    "schema_version": 1,
+    "event_id": "event_accepted_001",
+    "transaction_id": "transaction_resolve_001",
+    "campaign_id": "campaign_ember_001",
+    "caused_by_command_id": "command_resolve_001",
+    "transaction_index": 0,
+    "stream_revision": 1,
+    "kind": "command_accepted",
+    "payload": {
+      "command_kind": "resolve_check",
+      "command_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    }
+  },
+  "command_rejected_event": {
+    "schema_version": 1,
+    "event_id": "event_rejected_001",
+    "transaction_id": "transaction_stale_001",
+    "campaign_id": "campaign_ember_001",
+    "caused_by_command_id": "command_stale_001",
+    "transaction_index": 0,
+    "stream_revision": 3,
+    "kind": "command_rejected",
+    "payload": {
+      "command_kind": "resolve_check",
+      "command_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "rejection_code": "expected_revision_mismatch",
+      "safe_detail": "Expected revision 0 but the campaign is at revision 2."
+    }
+  },
+  "accepted_transaction": {
+    "schema_version": 1,
+    "campaign_id": "campaign_ember_001",
+    "command_id": "command_resolve_001",
+    "command_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "transaction_id": "transaction_resolve_001",
+    "first_revision": 1,
+    "last_revision": 2,
+    "event_count": 2,
+    "pre_state_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "post_state_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "committed_at": "2026-08-07T18:00:00.000Z",
+    "outcome": "accepted"
+  },
+  "rejected_transaction": {
+    "schema_version": 1,
+    "campaign_id": "campaign_ember_001",
+    "command_id": "command_stale_001",
+    "command_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "transaction_id": "transaction_stale_001",
+    "first_revision": 3,
+    "last_revision": 3,
+    "event_count": 1,
+    "pre_state_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "post_state_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "committed_at": "2026-08-07T18:00:01.000Z",
+    "outcome": "rejected",
+    "rejection_code": "expected_revision_mismatch",
+    "safe_detail": "Expected revision 0 but the campaign is at revision 2."
+  },
+  "random_draw_record": {
+    "schema_version": 1,
+    "algorithm_version": "hmac_sha256_v1",
+    "seed_fingerprint": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "campaign_id": "campaign_ember_001",
+    "command_id": "command_resolve_001",
+    "purpose": "check.d20",
+    "purpose_local_index": 0,
+    "minimum": 1,
+    "maximum": 20,
+    "realized_value": 10,
+    "rejection_count": 0
   },
   "simulated_check_resolved_event": {
     "schema_version": 1,
@@ -49,9 +123,23 @@
     "transaction_id": "transaction_resolve_001",
     "campaign_id": "campaign_ember_001",
     "caused_by_command_id": "command_resolve_001",
-    "transaction_index": 0,
+    "transaction_index": 1,
+    "stream_revision": 2,
     "kind": "check_resolved",
     "payload": {
+      "random_draw": {
+        "schema_version": 1,
+        "algorithm_version": "hmac_sha256_v1",
+        "seed_fingerprint": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "campaign_id": "campaign_ember_001",
+        "command_id": "command_resolve_001",
+        "purpose": "check.d20",
+        "purpose_local_index": 0,
+        "minimum": 1,
+        "maximum": 20,
+        "realized_value": 10,
+        "rejection_count": 0
+      },
       "result": {
         "schema_version": 1,
         "actor_id": "actor_sable_001",
@@ -80,9 +168,12 @@
     "transaction_id": "transaction_resolve_002",
     "campaign_id": "campaign_ember_001",
     "caused_by_command_id": "command_resolve_002",
-    "transaction_index": 0,
+    "transaction_index": 1,
+    "stream_revision": 4,
     "kind": "check_resolved",
     "payload": {
+      "pending_check_id": "pending_check_sable_001",
+      "physical_submission_id": "physical_submission_sable_001",
       "result": {
         "schema_version": 1,
         "actor_id": "actor_sable_001",
@@ -112,9 +203,12 @@
     "transaction_id": "transaction_physical_001",
     "campaign_id": "campaign_ember_001",
     "caused_by_command_id": "command_physical_001",
-    "transaction_index": 0,
+    "transaction_index": 1,
+    "stream_revision": 6,
     "kind": "physical_roll_requested",
     "payload": {
+      "pending_check_id": "pending_check_sable_002",
+      "submission_nonce": "physical_nonce_sable_002",
       "disclosure": {
         "schema_version": 1,
         "actor_id": "actor_sable_001",
@@ -440,6 +534,7 @@
   "core_term_content_definition": {
     "schema_version": 1,
     "content_definition_id": "content_core_attribute_force",
+    "definition_revision": 1,
     "kind": "core_term",
     "payload": {
       "category": "attribute",

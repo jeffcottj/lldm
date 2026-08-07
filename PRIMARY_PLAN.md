@@ -1,6 +1,6 @@
 # LLDM Living-Room RPG
 
-**Status:** Phase 0 complete; ready for Phase 1 implementation
+**Status:** Phase 0 complete; Phase 1 implementation in progress
 
 **Date:** 2026-08-07  
 **Outcome:** A one-household living-room RPG prototype for 3–5 adult players, with a deterministic TypeScript rules engine and an LLM-powered game runner delivering voice-first, persistent heroic-fantasy play.
@@ -9,7 +9,7 @@
 
 ### Repository findings
 
-The repository at `/home/john/repos/lldm` is initialized on `main`, tracks its GitHub `origin`, and now contains the completed [Phase 0 executable foundation](docs/plans/PHASE_0.md): a locked Node 24/pnpm workspace, strict quality tooling and CI, the private `@lldm/contracts`, `@lldm/engine`, and `@lldm/content` packages, runtime schemas, pure resolution rules, 87 passing tests, generated mechanical references, and syntax-validated Compose and Wrangler placeholders. It still contains no reducer, event store, application, provider adapter, playable content catalog, or deployable service; those remain in later phases.
+The repository at `/home/john/repos/lldm` is initialized on `main`, tracks its GitHub `origin`, and contains the completed [Phase 0 executable foundation](docs/plans/PHASE_0.md): a locked Node 24/pnpm workspace, strict quality tooling and CI, the private `@lldm/contracts`, `@lldm/engine`, and `@lldm/content` packages, runtime schemas, pure resolution rules, 87 passing baseline tests, generated mechanical references, and syntax-validated Compose and Wrangler placeholders. [Phase 1](docs/plans/PHASE_1.md) is in progress: buildable private `@lldm/runtime` and `@lldm/cli` units establish the fixed dependency boundaries; Kysely and `better-sqlite3` are isolated behind the runtime's package-internal SQLite seam; the CLI exposes truthful help/version output; and ADR-0002 records the proposed deterministic runtime architecture. Central contract registries own the command, event, content, projection, proposal, and transport unions, with explicit command/event revisions, distinct storage/state/randomness/content version concepts, typed transaction outcomes, opaque Phase 1 identities, and versioned random evidence. Contracts define separate playable state, rank/resource structure, named-zone combat and physical continuation, Progress/Danger, social, ritual, inert mechanical-effect, content-catalog, starter-loadout, and immutable-manifest records with semantic validators. The approved Phase 1 rules are locked in executable constants and generated documentation. A pure versioned campaign state, exhaustive event applier, and invariant validator now exist. Check decisions use explicit recorded HMAC-SHA-256 draws for simulated outcomes and a nonce-bound, two-transaction pre-disclosed path for physical rolls and Spark conversion. Character decisions materialize campaign-pinned rank-one state, bind ready/spent significant-gear mechanics, enforce exact resources and recovery, expose legal abilities, and support prerequisite-checked structural advancement through rank 4. Combat decisions enforce named-zone range, hero-first alternating activations, legal actions, deterministic enemy fallback, reactions, fixed Impact and armor, Wounds, boss transitions/objectives, and physical death continuation. Challenge, social, and ritual decisions share the authoritative check flow, enforce hard limits and declared prerequisites before draws, apply pinned outcome facts through typed events, and replay through strengthened event invariants. The production catalog pins 54 canonical revision-one definitions, six mechanically distinct archetypes, four starter loadouts, the Floodgate encounter, and its challenge/social/ritual slice under manifest hash `sha256:7663c17e9a9cb83b5ec88e096c32fe735cafdabd2bf55c1127b6b288d9ab735b`; generated playable-content documentation derives from it. A runtime-validated deterministic fixture drives that complete slice through four combat rounds, a recoverable physical-roll pause/resume, and valid non-combat conclusions with literal draw/event/hash expectations; bounded fixed-seed sanity observations add no win-rate gate. The reusable runtime now has SQLite-independent typed ports and an atomic command coordinator that permanently binds command/transaction identities, short-circuits exact retries before side effects, commits accepted or canonical rejected event ranges, records deterministic random evidence, and hashes every mechanical transition. The suite passes 194 tests in 25 files. SQLite migration/event-store persistence, provider adapters, and deployable services do not exist yet.
 
 Useful host capabilities already available are Node.js 24, npm, pnpm, Docker, Git, GitHub CLI, Playwright CLI, ffmpeg, curl, jq, and OpenSSL. Rust is not installed and is no longer required because the selected stack is TypeScript throughout. Cloudflare Wrangler should be added as a pinned project development dependency rather than installed globally.
 
@@ -20,6 +20,7 @@ Useful host capabilities already available are Node.js 24, npm, pnpm, Docker, Gi
 - Preserve consequential physical dice moments while resolving routine randomness unobtrusively.
 - Give characters meaningful build depth with substantially fewer, more consequential options than a traditional high-complexity fantasy RPG.
 - Make all mechanical state authoritative, deterministic, auditable, recoverable, and independent from LLM judgment.
+- Bind command and transaction identities permanently: identical command retries reuse their stored transaction, while either identity reused for different work fails without appending history.
 - Support persistent, generated heroic-fantasy campaigns in self-contained 2–4-hour episodes.
 - Deliver a complete first campaign tier spanning character ranks 1–4.
 
@@ -118,7 +119,7 @@ The six initial archetypes and paths are:
 
 Rank 1 establishes the core identity and signature. Rank 2 selects a path. Rank 3 grants a cross-pillar talent. Rank 4 grants the first-tier capstone. The eventual system has ten ranks in three power tiers, but this plan implements and balances only ranks 1–4.
 
-Powerful techniques consume a three-point Exertion pool; signature moves are usable once per scene. Exertion and scene-limited abilities recover through explicit scene transitions or costly rests rather than individual cooldown counters.
+Powerful techniques consume a three-point Exertion pool; signature moves are usable once per scene. Rank-one Guard maxima are Vanguard 8, Maverick 7, Wayfinder 6, Envoy 6, Weaver 5, and Beacon 6. A scene transition fully restores Guard and Exertion and resets scene abilities. A costly rest spends one shared Supply for the same benefits for participating heroes. Neither heals Wounds or restores Spark. Session start restores one Spark and its once-per-session complication recovery; Supply persists.
 
 Track four significant gear slots per hero and a shared Supply pool capped at `party size + 2`. Mundane money, ammunition, and incidental gear remain narrative unless an episode makes a specific item consequential.
 
@@ -138,6 +139,7 @@ Track four significant gear slots per hero and a shared Supply pool capped at `p
 - Impact depletes Guard. Overflow marks one named Wound and leaves Guard at zero.
 - Further harmful hits at zero Guard mark additional Wounds.
 - Filling the third Wound immediately triggers a transparent physical death test.
+- The death test uses target 13 with Force plus Athletics; eligible ally aid grants Edge.
 - Death-test Success leaves the hero stable with two Wounds.
 - Triumph returns the hero conscious with a permanent Scar.
 - Setback or Crisis means permanent death.
@@ -147,13 +149,17 @@ Track four significant gear slots per hero and a shared Supply pool capped at `p
 
 The engine enumerates every legal enemy action and target. The LLM selects among these candidates using the enemy’s goals and temperament. A deterministic scoring policy handles timeout or invalid output.
 
+Heroes begin each combat round. Sides alternate while able; an exhausted side yields, and a new hero-first round restores action, maneuver, and reaction slots after both sides exhaust. Reaction priority goes to the directly affected actor, then heroes and enemies in stable actor-ID order; the first reaction used closes the window.
+
 ### Narrative systems
 
 - Social play is conversation-first. NPCs have motives, fears, stance, leverage, and hard limits.
 - Social checks occur only at consequential turning points and cannot operate as mind control.
 - Travel, investigation, social, ritual, and environmental challenges use paired Progress and Danger tracks.
+- Every challenge definition declares both thresholds and its tie rule; the Phase 1 example uses Progress 4, Danger 3, and resolves a simultaneous fill with a cost.
 - Combat magic uses typed, engine-validated powers.
 - Broader magic uses rituals with explicit scope, time, requirements, costs, target, and consequences.
+- Ritual interruption preserves paid costs, leaves unpaid costs untouched, and requires a new ritual to restart.
 - Enemies are assembled from validated role chassis, tiers, powers, traits, and encounter budgets.
 - The LLM may create an enemy’s identity and fiction but may not create unvalidated mechanics.
 - Harmful player-versus-player mechanics require explicit consent from the affected player’s phone.
@@ -194,8 +200,10 @@ Create a strict TypeScript pnpm workspace using Node 24. Workspace packages are 
 - `packages/contracts`: TypeBox/JSON Schema definitions for commands, events, content, AI proposals, and projections.
 - `packages/engine`: pure deterministic reducer with no database, network, wall clock, or global randomness.
 - `packages/content`: versioned character modules, powers, enemy components, encounter budgets, and generated reference data.
+- `packages/runtime`: reusable local transaction coordinator, injected system ports, SQLite event store, migrations, replay, snapshots, projections, and recovery helpers.
 - `packages/providers`: OpenRouter and fake provider adapters.
-- `apps/host`: Fastify orchestration service, SQLite event store, context builder, media pipeline, cost meter, and diagnostics.
+- `apps/cli`: scriptable Phase 1 simulator and operational interface over `packages/runtime`.
+- `apps/host`: Fastify orchestration service composed over `packages/runtime`, plus context builder, media pipeline, cost meter, and diagnostics.
 - `apps/web`: React/Vite PWA with TV, player, host-control, character-workshop, and recovery routes.
 - `apps/relay`: Cloudflare Worker, static PWA assets, and one Durable Object per active room.
 
@@ -360,16 +368,21 @@ Reducers, persistence, replay execution, applications, providers, complete chara
 
 ### Phase 1 — Deterministic engine and persistence
 
-- Extend schema validation into transactional command handling, then implement reducers, seeded randomness, event replay, snapshots, SQLite migrations, projections, compensating undo, and a CLI simulator.
-- Implement ranks 1–4 structures, Guard/Wounds, Exertion/Spark/Supply, named zones, alternating activations, fixed Impact, death tests, progress/danger tracks, social motives, and typed rituals.
-- Add the six archetype identities and enough complete rank-one content to simulate a four-hero encounter.
-- Extend content validation and generated rules-reference output for the Phase 1 mechanics and initial playable content.
+**Detailed execution plan:** [`docs/plans/PHASE_1.md`](docs/plans/PHASE_1.md)
 
-**Exit criterion:** Replaying the representative event fixtures produces the same state hashes, and focused invariant tests reject invalid resources, activations, zone relationships, and death states.
+- Add `packages/runtime` as the reusable impure owner of transaction coordination, injected clock/entropy/ID ports, SQLite/Kysely persistence, migrations, replay, snapshots, projections, backups, and compensating undo. Keep `packages/engine` pure and defer `apps/host` to Phase 2.
+- Add a thin scriptable `apps/cli` composition layer for migration, campaign, command, scenario, replay, snapshot, projection, and undo workflows; do not build a TUI or room service.
+- Extend only the centralized TypeBox command/event/content/projection unions, then implement pure command decision plus event application, event-level campaign revisions, transaction-level timestamps, pre/post state hashes, and idempotent command identity.
+- Derive versioned, domain-separated simulated draws from campaign seed and command identity, record each result/reference, return the stored transaction on retry, and resolve physical rolls through a separately committed die-submission command.
+- Preserve `CharacterFoundation` as non-playable creation input. Add distinct playable state, rank 1–4 structure, Guard/Wounds, Exertion/Spark/Supply, named zones, alternating activations, fixed Impact, death tests, Progress/Danger, social state, and typed ritual kernels.
+- Ship six playable rank-one archetypes and only the supporting options/enemies/examples needed for a four-hero vertical slice; paths, rank-3 talents, rank-4 capstones, broad catalogs, and balance targets remain later work.
+- Extend the generated mechanical reference, retain the probability report, add a generated playable-content reference, and keep this primary plan synchronized task by task.
+
+**Exit criterion:** From a fresh migrated database, separate CLI processes complete the representative four-hero encounter, prove duplicate retry cannot rerun or reroll, resolve one physical roll, compensate one eligible transaction, recover through snapshot-plus-tail and explicit corrupt-snapshot fallback, rebuild visibility-safe projections, and reproduce the recorded hash after every transaction. Focused invariants reject invalid resources, activations, zone relationships, and death states, and all generated references are drift-free.
 
 ### Phase 2 — Room shell, PWA, and TV
 
-- Build the Fastify host, React/Vite role-based web app, filtered projections, seat management, QR flow, host transfer, typed commands, choices, die entry, and reconnect behavior.
+- Build the Fastify host as a composition layer over `packages/runtime`, plus the React/Vite role-based web app, filtered projection delivery, seat management, QR flow, host transfer, typed commands, choices, die entry, and reconnect behavior.
 - Deploy the Cloudflare Worker/Durable Object relay with hibernating WebSockets, static PWA assets, token validation, rate limits, and room cleanup.
 - Add Chromium kiosk startup and the initial Docker Compose appliance.
 - Exercise the complete room flow with fake provider adapters and text narration.
@@ -456,6 +469,7 @@ Each case must produce a typed, user-visible recovery state without corrupting c
 - TypeScript replaces the initially contemplated Rust stack.
 - The local engine is mechanically authoritative; the LLM submits bounded proposals.
 - Canonical execution and history remain on the Linux mini PC.
+- Phase 1 persistence and transaction orchestration live in reusable `packages/runtime`; its scriptable interface lives in `apps/cli`, while the Fastify `apps/host` remains a Phase 2 composition layer.
 - Cloudflare Durable Objects provide an ephemeral room relay and HTTPS PWA delivery.
 - OpenRouter is the sole runtime gateway behind a replaceable adapter; OpenAI models, when used, are reached through OpenRouter.
 - Physical player-entered d20 rolls are sparse, dramatic, and transparent.

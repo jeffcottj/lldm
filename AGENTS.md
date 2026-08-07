@@ -11,3 +11,4 @@ Keep phones glanceable and make shared voice and TV output the primary experienc
 Never block play on generated media, and always provide cached or deterministic fallbacks.
 Store canonical history locally, keep the relay ephemeral, discard raw audio promptly, and favor explicit recovery over silent guesswork.
 Ensure PRIMARY_PLAN.md stays aligned with the actual application as changes are made.
+Write all plan documents for AI coding agents, not human developers.

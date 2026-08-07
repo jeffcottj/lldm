@@ -12,7 +12,7 @@ describe("canonical validation", () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.value.kind).toBe("resolve_check");
-      expect(result.value.payload.die_face).toBe(10);
+      expect(result.value.payload.roll_mode).toBe("simulated");
     }
   });
 

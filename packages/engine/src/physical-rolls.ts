@@ -1,4 +1,5 @@
 import {
+  MANDATORY_PHYSICAL_ROLL_REASONS as CONTRACT_MANDATORY_PHYSICAL_ROLL_REASONS,
   PHYSICAL_ROLL_REASONS,
   SCHEMA_VERSION,
   type CheckRequest,
@@ -12,12 +13,8 @@ import {
   resolveCheck,
 } from "./resolution.js";
 
-export const MANDATORY_PHYSICAL_ROLL_REASONS = [
-  "permanent_death",
-  "declared_irreversible_stake",
-  "named_boss_transition",
-  "pivotal_scene_conclusion",
-] as const satisfies readonly PhysicalRollReason[];
+export const MANDATORY_PHYSICAL_ROLL_REASONS =
+  CONTRACT_MANDATORY_PHYSICAL_ROLL_REASONS;
 export const PHYSICAL_ROLL_REASON_PRECEDENCE = Object.freeze([
   ...MANDATORY_PHYSICAL_ROLL_REASONS,
   "spark_invocation",

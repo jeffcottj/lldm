@@ -18,7 +18,11 @@ import {
   SeatIdSchema,
   TransactionIdSchema,
 } from "./ids.js";
-import { ProtocolVersionSchema, SchemaVersionSchema } from "./versions.js";
+import {
+  ContentDefinitionRevisionSchema,
+  ProtocolVersionSchema,
+  SchemaVersionSchema,
+} from "./versions.js";
 
 export function strictObject<Properties extends TProperties>(
   properties: Properties,
@@ -35,6 +39,7 @@ export function commandEnvelope<Kind extends TLiteral, Payload extends TSchema>(
     command_id: CommandIdSchema,
     transaction_id: TransactionIdSchema,
     campaign_id: CampaignIdSchema,
+    expected_revision: Type.Integer({ minimum: 0 }),
     kind,
     payload,
   });
@@ -51,6 +56,7 @@ export function eventEnvelope<Kind extends TLiteral, Payload extends TSchema>(
     campaign_id: CampaignIdSchema,
     caused_by_command_id: CommandIdSchema,
     transaction_index: Type.Integer({ minimum: 0 }),
+    stream_revision: Type.Integer({ minimum: 1 }),
     kind,
     payload,
   });
@@ -63,6 +69,7 @@ export function contentDefinitionEnvelope<
   return strictObject({
     schema_version: SchemaVersionSchema,
     content_definition_id: ContentDefinitionIdSchema,
+    definition_revision: ContentDefinitionRevisionSchema,
     kind,
     payload,
   });

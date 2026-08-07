@@ -131,6 +131,7 @@ const attributeTerms = ATTRIBUTES.map((identifier) =>
   defineCoreTerm({
     schema_version: SCHEMA_VERSION,
     content_definition_id: `content_core_attribute_${identifier.toLowerCase()}`,
+    definition_revision: 1,
     kind: "core_term",
     payload: {
       category: "attribute",
@@ -143,6 +144,7 @@ const disciplineTerms = DISCIPLINES.map((identifier) =>
   defineCoreTerm({
     schema_version: SCHEMA_VERSION,
     content_definition_id: `content_core_discipline_${identifier.toLowerCase()}`,
+    definition_revision: 1,
     kind: "core_term",
     payload: {
       category: "discipline",
@@ -155,6 +157,7 @@ const targetTerms = STANDARD_TARGETS.map((identifier) =>
   defineCoreTerm({
     schema_version: SCHEMA_VERSION,
     content_definition_id: `content_core_target_${identifier}`,
+    definition_revision: 1,
     kind: "core_term",
     payload: {
       category: "target",
@@ -167,6 +170,7 @@ const outcomeTerms = OUTCOME_DEGREES.map((identifier) =>
   defineCoreTerm({
     schema_version: SCHEMA_VERSION,
     content_definition_id: `content_core_outcome_${identifier.toLowerCase()}`,
+    definition_revision: 1,
     kind: "core_term",
     payload: {
       category: "outcome_degree",
@@ -183,24 +187,3 @@ export const CORE_TERM_CATALOG: readonly CoreTermContentDefinition[] =
     ...targetTerms,
     ...outcomeTerms,
   ]);
-
-export interface UnavailableRegistry {
-  readonly availability: "unavailable_in_phase_0";
-  readonly definitions: readonly never[];
-}
-
-const unavailableRegistry = (): UnavailableRegistry =>
-  Object.freeze({
-    availability: "unavailable_in_phase_0",
-    definitions: Object.freeze([]),
-  });
-
-export const FUTURE_CONTENT_REGISTRIES = Object.freeze({
-  heritage_gifts: unavailableRegistry(),
-  upbringings: unavailableRegistry(),
-  archetypes: unavailableRegistry(),
-  paths: unavailableRegistry(),
-  talents: unavailableRegistry(),
-  powers: unavailableRegistry(),
-  enemies: unavailableRegistry(),
-});

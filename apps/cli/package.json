@@ -1,0 +1,22 @@
+{
+  "name": "@lldm/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "lldm": "./src/main.ts"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "lldm": "tsx src/main.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --build"
+  },
+  "dependencies": {
+    "@lldm/contracts": "workspace:*",
+    "@lldm/runtime": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.13"
+  }
+}

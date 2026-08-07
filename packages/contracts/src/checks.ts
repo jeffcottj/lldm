@@ -7,8 +7,15 @@ import {
   strictObject,
   transportEnvelope,
 } from "./envelopes.js";
-import { ActorIdSchema, SeatIdSchema } from "./ids.js";
+import {
+  ActorIdSchema,
+  PendingCheckIdSchema,
+  PhysicalRollNonceSchema,
+  PhysicalSubmissionIdSchema,
+  SeatIdSchema,
+} from "./ids.js";
 import { SchemaVersionSchema } from "./versions.js";
+import { RandomDrawRecordSchema } from "./randomness.js";
 
 export const ATTRIBUTES = ["Force", "Finesse", "Insight", "Presence"] as const;
 export const DISCIPLINES = [
@@ -35,6 +42,12 @@ export const PHYSICAL_ROLL_REASONS = [
   "pivotal_scene_conclusion",
   "spark_invocation",
 ] as const;
+export const MANDATORY_PHYSICAL_ROLL_REASONS = [
+  "permanent_death",
+  "declared_irreversible_stake",
+  "named_boss_transition",
+  "pivotal_scene_conclusion",
+] as const;
 
 export const AttributeSchema = Type.Union(
   ATTRIBUTES.map((attribute) => Type.Literal(attribute)),
@@ -50,6 +63,9 @@ export const OutcomeDegreeSchema = Type.Union(
 );
 export const PhysicalRollReasonSchema = Type.Union(
   PHYSICAL_ROLL_REASONS.map((reason) => Type.Literal(reason)),
+);
+export const MandatoryPhysicalRollReasonSchema = Type.Union(
+  MANDATORY_PHYSICAL_ROLL_REASONS.map((reason) => Type.Literal(reason)),
 );
 export const DieFaceSchema = Type.Integer({ minimum: 1, maximum: 20 });
 export const AttributeRatingSchema = Type.Union([
@@ -217,32 +233,62 @@ export const PhysicalRollDisclosureSchema = strictObject({
   ]),
 });
 
-const SimulatedResolutionPayloadSchema = strictObject({
+export const SimulatedCheckAttemptSchema = strictObject({
   request: CheckRequestSchema,
-  die_face: DieFaceSchema,
   roll_mode: Type.Literal("simulated"),
+  invoke_spark: Type.Boolean(),
 });
-const PhysicalResolutionPayloadSchema = strictObject({
+export const PhysicalCheckAttemptSchema = strictObject({
   request: CheckRequestSchema,
-  die_face: DieFaceSchema,
   roll_mode: Type.Literal("physical"),
-  physical_reason: PhysicalRollReasonSchema,
+  physical_reason: MandatoryPhysicalRollReasonSchema,
+  invoke_spark: Type.Boolean(),
 });
+export const CheckAttemptInputSchema = Type.Union([
+  SimulatedCheckAttemptSchema,
+  PhysicalCheckAttemptSchema,
+]);
 
 export const ResolveCheckCommandSchema = commandEnvelope(
   Type.Literal("resolve_check"),
-  Type.Union([
-    SimulatedResolutionPayloadSchema,
-    PhysicalResolutionPayloadSchema,
-  ]),
+  CheckAttemptInputSchema,
 );
 export const CheckResolvedEventSchema = eventEnvelope(
   Type.Literal("check_resolved"),
-  strictObject({ result: ResolvedCheckSchema }),
+  Type.Union([
+    strictObject({
+      result: SimulatedResolvedCheckSchema,
+      random_draw: RandomDrawRecordSchema,
+    }),
+    strictObject({
+      pending_check_id: PendingCheckIdSchema,
+      physical_submission_id: PhysicalSubmissionIdSchema,
+      result: PhysicalResolvedCheckSchema,
+    }),
+  ]),
 );
 export const PhysicalRollRequestedEventSchema = eventEnvelope(
   Type.Literal("physical_roll_requested"),
-  strictObject({ disclosure: PhysicalRollDisclosureSchema }),
+  strictObject({
+    pending_check_id: PendingCheckIdSchema,
+    submission_nonce: PhysicalRollNonceSchema,
+    disclosure: PhysicalRollDisclosureSchema,
+  }),
+);
+
+export const SparkSpentEventSchema = eventEnvelope(
+  Type.Literal("spark_spent"),
+  strictObject({ actor_id: ActorIdSchema }),
+);
+
+export const SubmitDieResultCommandSchema = commandEnvelope(
+  Type.Literal("submit_die_result"),
+  strictObject({
+    pending_check_id: PendingCheckIdSchema,
+    physical_submission_id: PhysicalSubmissionIdSchema,
+    submission_nonce: PhysicalRollNonceSchema,
+    die_face: DieFaceSchema,
+  }),
 );
 export const ProposeCheckProposalSchema = proposalEnvelope(
   Type.Literal("propose_check"),
@@ -257,17 +303,6 @@ export const CheckPreviewTransportMessageSchema = transportEnvelope(
   CheckPreviewProjectionSchema,
 );
 
-export const ClientCommandSchema = Type.Union([ResolveCheckCommandSchema]);
-export const GameEventSchema = Type.Union([
-  CheckResolvedEventSchema,
-  PhysicalRollRequestedEventSchema,
-]);
-export const BoundedProposalSchema = Type.Union([ProposeCheckProposalSchema]);
-export const ProjectionSchema = Type.Union([CheckPreviewProjectionSchema]);
-export const TransportMessageSchema = Type.Union([
-  CheckPreviewTransportMessageSchema,
-]);
-
 export type Attribute = Static<typeof AttributeSchema>;
 export type Discipline = Static<typeof DisciplineSchema>;
 export type StandardTarget = Static<typeof StandardTargetSchema>;
@@ -279,6 +314,7 @@ export type DisciplineRating = Static<typeof DisciplineRatingSchema>;
 export type ModifierState = Static<typeof ModifierStateSchema>;
 export type OutcomeConsequences = Static<typeof OutcomeConsequencesSchema>;
 export type CheckRequest = Static<typeof CheckRequestSchema>;
+export type CheckAttemptInput = Static<typeof CheckAttemptInputSchema>;
 export type ImpossibleCheckRejection = Static<
   typeof ImpossibleCheckRejectionSchema
 >;
@@ -287,8 +323,3 @@ export type ResolvedCheck = Static<typeof ResolvedCheckSchema>;
 export type PhysicalRollDisclosure = Static<
   typeof PhysicalRollDisclosureSchema
 >;
-export type ClientCommand = Static<typeof ClientCommandSchema>;
-export type GameEvent = Static<typeof GameEventSchema>;
-export type BoundedProposal = Static<typeof BoundedProposalSchema>;
-export type Projection = Static<typeof ProjectionSchema>;
-export type TransportMessage = Static<typeof TransportMessageSchema>;

@@ -24,6 +24,14 @@
     "expected_path": "/kind"
   },
   {
+    "name": "negative expected revision",
+    "base": "resolve_check_command",
+    "operation": "set",
+    "path": ["expected_revision"],
+    "value": -1,
+    "expected_path": "/expected_revision"
+  },
+  {
     "name": "missing command discriminator",
     "base": "resolve_check_command",
     "operation": "delete",
@@ -68,6 +76,22 @@
     "operation": "delete",
     "path": ["payload", "disclosure", "eligible_roller"],
     "expected_path": "/payload/disclosure/eligible_roller"
+  },
+  {
+    "name": "invalid stream revision",
+    "base": "simulated_check_resolved_event",
+    "operation": "set",
+    "path": ["stream_revision"],
+    "value": 0,
+    "expected_path": "/stream_revision"
+  },
+  {
+    "name": "future randomness algorithm",
+    "base": "random_draw_record",
+    "operation": "set",
+    "path": ["algorithm_version"],
+    "value": "hmac_sha256_v2",
+    "expected_path": "/algorithm_version"
   },
   {
     "name": "invalid character allocation",

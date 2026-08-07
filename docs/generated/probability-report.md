@@ -1,6 +1,6 @@
 > Generated from executable LLDM definitions. Do not edit by hand. Run `pnpm docs:generate` to regenerate.
 
-# LLDM Phase 0 Probability Report
+# LLDM Phase 1 Probability Report
 
 Each row directly enumerates all twenty d20 faces through the authoritative resolution function. Counts are exact integers out of 20; percentages use five percentage points per face.
 

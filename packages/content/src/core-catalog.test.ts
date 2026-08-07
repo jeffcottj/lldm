@@ -7,10 +7,7 @@ import {
   validateValue,
 } from "@lldm/contracts";
 import { describe, expect, it } from "vitest";
-import {
-  CORE_TERM_CATALOG,
-  FUTURE_CONTENT_REGISTRIES,
-} from "./core-catalog.js";
+import { CORE_TERM_CATALOG } from "./core-catalog.js";
 
 describe("Phase 0 core-term catalog", () => {
   it("contains one validated record for every core identifier", () => {
@@ -31,13 +28,6 @@ describe("Phase 0 core-term catalog", () => {
       expect(
         validateValue(CoreTermContentDefinitionSchema, definition).success,
       ).toBe(true);
-    }
-  });
-
-  it("keeps later content registries explicitly unavailable and empty", () => {
-    for (const registry of Object.values(FUTURE_CONTENT_REGISTRIES)) {
-      expect(registry.availability).toBe("unavailable_in_phase_0");
-      expect(registry.definitions).toEqual([]);
     }
   });
 });

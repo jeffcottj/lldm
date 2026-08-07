@@ -1,0 +1,521 @@
+{
+  "schema_version": 1,
+  "record_kind": "phase_1_scenario_fixture",
+  "scenario_id": "scenario_floodgate_echo_001",
+  "campaign_id": "campaign_floodgate_echo_001",
+  "content_manifest_hash": "sha256:7663c17e9a9cb83b5ec88e096c32fe735cafdabd2bf55c1127b6b288d9ab735b",
+  "combat": {
+    "schema_version": 1,
+    "record_kind": "combat_state",
+    "combat_id": "combat_floodgate_echo_001",
+    "status": "active",
+    "round": 1,
+    "active_side": "hero",
+    "active_actor_id": null,
+    "battlefield": {
+      "zones": [
+        {
+          "zone_id": "zone_gate_controls_001",
+          "name": "Gate Controls",
+          "capacity": 5,
+          "cover": "partial",
+          "hazard_tags": ["rising_water"],
+          "objective_ids": ["objective_open_spillway_001"],
+          "elevation": "high",
+          "visibility": "open",
+          "connections": ["zone_lower_causeway_001", "zone_spillway_walk_001"]
+        },
+        {
+          "zone_id": "zone_lower_causeway_001",
+          "name": "Lower Causeway",
+          "capacity": 5,
+          "cover": "partial",
+          "hazard_tags": ["slick_stone"],
+          "objective_ids": [],
+          "elevation": "level",
+          "visibility": "open",
+          "connections": ["zone_gate_controls_001", "zone_pump_gallery_001"]
+        },
+        {
+          "zone_id": "zone_pump_gallery_001",
+          "name": "Pump Gallery",
+          "capacity": 5,
+          "cover": "fortified",
+          "hazard_tags": ["turning_gears"],
+          "objective_ids": [],
+          "elevation": "level",
+          "visibility": "open",
+          "connections": ["zone_lower_causeway_001", "zone_bell_chamber_001"]
+        },
+        {
+          "zone_id": "zone_bell_chamber_001",
+          "name": "Bell Chamber",
+          "capacity": 5,
+          "cover": "none",
+          "hazard_tags": ["resonant_shock"],
+          "objective_ids": [],
+          "elevation": "high",
+          "visibility": "open",
+          "connections": ["zone_pump_gallery_001", "zone_spillway_walk_001"]
+        },
+        {
+          "zone_id": "zone_spillway_walk_001",
+          "name": "Spillway Walk",
+          "capacity": 5,
+          "cover": "partial",
+          "hazard_tags": ["water_drop"],
+          "objective_ids": [],
+          "elevation": "low",
+          "visibility": "open",
+          "connections": ["zone_gate_controls_001", "zone_bell_chamber_001"]
+        }
+      ]
+    },
+    "participants": [
+      {
+        "actor_id": "actor_mara_venn_001",
+        "side": "hero",
+        "kind": "hero",
+        "zone_id": "zone_bell_chamber_001",
+        "action_available": true,
+        "maneuver_available": true,
+        "reaction_available": true,
+        "activation_spent": false,
+        "eligible_roller": "seat_mara_venn_001"
+      },
+      {
+        "actor_id": "actor_sable_reed_001",
+        "side": "hero",
+        "kind": "hero",
+        "zone_id": "zone_lower_causeway_001",
+        "action_available": true,
+        "maneuver_available": true,
+        "reaction_available": true,
+        "activation_spent": false,
+        "eligible_roller": "seat_sable_reed_001"
+      },
+      {
+        "actor_id": "actor_ilyra_quill_001",
+        "side": "hero",
+        "kind": "hero",
+        "zone_id": "zone_gate_controls_001",
+        "action_available": true,
+        "maneuver_available": true,
+        "reaction_available": true,
+        "activation_spent": false,
+        "eligible_roller": "seat_ilyra_quill_001"
+      },
+      {
+        "actor_id": "actor_oren_ash_001",
+        "side": "hero",
+        "kind": "hero",
+        "zone_id": "zone_pump_gallery_001",
+        "action_available": true,
+        "maneuver_available": true,
+        "reaction_available": true,
+        "activation_spent": false,
+        "eligible_roller": "seat_oren_ash_001"
+      },
+      {
+        "actor_id": "actor_floodworn_crew_001",
+        "side": "enemy",
+        "kind": "squad",
+        "zone_id": "zone_pump_gallery_001",
+        "action_available": true,
+        "maneuver_available": true,
+        "reaction_available": true,
+        "activation_spent": false,
+        "definition": {
+          "content_definition_id": "content_enemy_floodworn_crew_001",
+          "definition_revision": 1
+        },
+        "guard": { "current": 6, "maximum": 6 },
+        "armor": 0
+      },
+      {
+        "actor_id": "actor_bellmaw_custodian_001",
+        "side": "enemy",
+        "kind": "boss",
+        "zone_id": "zone_bell_chamber_001",
+        "action_available": true,
+        "maneuver_available": true,
+        "reaction_available": true,
+        "activation_spent": false,
+        "definition": {
+          "content_definition_id": "content_enemy_bellmaw_custodian_001",
+          "definition_revision": 1
+        },
+        "guard": { "current": 10, "maximum": 10 },
+        "armor": 1
+      }
+    ],
+    "objectives": [
+      {
+        "objective_id": "objective_open_spillway_001",
+        "definition": {
+          "content_definition_id": "content_objective_open_spillway_001",
+          "definition_revision": 1
+        },
+        "progress": 0,
+        "threshold": 3,
+        "status": "active"
+      }
+    ],
+    "boss_overlays": [
+      {
+        "actor_id": "actor_bellmaw_custodian_001",
+        "definition": {
+          "content_definition_id": "content_overlay_last_resonance_001",
+          "definition_revision": 1
+        },
+        "active": false,
+        "objective_id": "objective_open_spillway_001"
+      }
+    ],
+    "reaction_window": null,
+    "pending_death_check_id": null,
+    "pending_action_check_id": null
+  },
+  "challenge": {
+    "schema_version": 1,
+    "record_kind": "challenge_state",
+    "challenge_id": "challenge_floodgate_sequence_001",
+    "definition": {
+      "content_definition_id": "content_challenge_floodgate_sequence_001",
+      "definition_revision": 1
+    },
+    "progress": { "current": 0, "maximum": 4 },
+    "danger": { "current": 0, "maximum": 3 },
+    "tie_rule": "resolved_with_cost",
+    "status": "active"
+  },
+  "social_state": {
+    "schema_version": 1,
+    "record_kind": "social_state",
+    "npc_actor_id": "actor_gatewarden_nera_001",
+    "definition": {
+      "content_definition_id": "content_social_gatewarden_nera_001",
+      "definition_revision": 1
+    },
+    "motives": [
+      { "text": "Keep the lower ward safe.", "visibility": "public" },
+      {
+        "text": "Restore trust in the gate crew.",
+        "visibility": "seat_private"
+      }
+    ],
+    "fears": [
+      {
+        "text": "The old flood will repeat on her watch.",
+        "visibility": "host_control"
+      }
+    ],
+    "stance": "guarded",
+    "leverage": [],
+    "leverage_capacity": 2,
+    "hard_limits": [
+      {
+        "social_limit_id": "social_limit_gate_alarm_001",
+        "statement": {
+          "text": "Never abandon the gate while its alarm sounds.",
+          "visibility": "public"
+        }
+      }
+    ]
+  },
+  "ritual": {
+    "schema_version": 1,
+    "record_kind": "ritual_state",
+    "ritual_id": "ritual_echo_lantern_001",
+    "definition": {
+      "content_definition_id": "content_ritual_echo_lantern_001",
+      "definition_revision": 1
+    },
+    "status": "preparing",
+    "requirements": [
+      { "kind": "participant_count", "minimum": 2 },
+      { "kind": "fictional_position", "tag": "echo_lantern_prepared" }
+    ],
+    "costs": [
+      {
+        "kind": "significant_gear",
+        "definition": {
+          "content_definition_id": "content_gear_resonant_wick_case_001",
+          "definition_revision": 1
+        }
+      },
+      { "kind": "supply", "amount": 1 }
+    ],
+    "contributor_ids": [],
+    "paid_cost_count": 0,
+    "target": { "kind": "place", "place_tag": "the_remembered_spillway" }
+  },
+  "established_fictional_position_tags": ["echo_lantern_prepared"],
+  "random_draws": [
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_mara_strike_r1",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 14,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_boss_select_r1",
+      "purpose": "enemy.tie_break",
+      "purpose_local_index": 0,
+      "minimum": 0,
+      "maximum": 1,
+      "realized_value": 0,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_boss_attack_r1",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 1,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_squad_attack_r1",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 1,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_oren_attack_r1",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 14,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_boss_select_r2",
+      "purpose": "enemy.tie_break",
+      "purpose_local_index": 0,
+      "minimum": 0,
+      "maximum": 1,
+      "realized_value": 0,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_boss_attack_r2",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 1,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_squad_attack_r2",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 1,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_oren_attack_r2",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 14,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_boss_select_r3",
+      "purpose": "enemy.tie_break",
+      "purpose_local_index": 0,
+      "minimum": 0,
+      "maximum": 1,
+      "realized_value": 0,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_boss_attack_r3",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 1,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_oren_attack_r3",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 14,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_mara_strike_r4",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 14,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_challenge_1",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 14,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_challenge_2",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 14,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_social_1",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 9,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_social_2",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 14,
+      "rejection_count": 0
+    },
+    {
+      "schema_version": 1,
+      "algorithm_version": "hmac_sha256_v1",
+      "seed_fingerprint": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "campaign_id": "campaign_floodgate_echo_001",
+      "command_id": "command_scenario_ritual_resolve",
+      "purpose": "check.d20",
+      "purpose_local_index": 0,
+      "minimum": 1,
+      "maximum": 20,
+      "realized_value": 9,
+      "rejection_count": 0
+    }
+  ],
+  "expected": {
+    "key_event_kinds": [
+      "combat_started",
+      "enemy_action_selected",
+      "reaction_window_opened",
+      "reaction_window_closed",
+      "objective_advanced",
+      "actor_moved",
+      "physical_roll_requested",
+      "combat_action_pending",
+      "boss_overlay_activated",
+      "combat_resolved",
+      "challenge_started",
+      "challenge_tracks_changed",
+      "challenge_resolved",
+      "social_state_established",
+      "social_stance_changed",
+      "ritual_started",
+      "significant_gear_spent",
+      "ritual_contribution",
+      "ritual_ready",
+      "ritual_resolved"
+    ],
+    "pending_physical_check_id": "pending_check_boss_transition_r2",
+    "pending_state_hash": "sha256:66f75fd8a81c34f32d7a373595f38c9f3f826c15e3d056803e3d887d8b51f5a1",
+    "final_state_hash": "sha256:1fa708705e451e91d6546e73495cb3f3f65fcf92142ed8df5c349917d5d12477",
+    "combat_outcome": "heroes_prevailed",
+    "challenge_outcome": "completed",
+    "social_stance": "aligned",
+    "ritual_outcome": "completed"
+  }
+}

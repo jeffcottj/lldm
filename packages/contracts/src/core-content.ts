@@ -40,12 +40,7 @@ export const CoreTermContentDefinitionSchema = contentDefinitionEnvelope(
   Type.Literal("core_term"),
   CoreTermPayloadSchema,
 );
-export const ContentDefinitionSchema = Type.Union([
-  CoreTermContentDefinitionSchema,
-]);
-
 export type CoreTermPayload = Static<typeof CoreTermPayloadSchema>;
 export type CoreTermContentDefinition = Static<
   typeof CoreTermContentDefinitionSchema
 >;
-export type ContentDefinition = Static<typeof ContentDefinitionSchema>;
