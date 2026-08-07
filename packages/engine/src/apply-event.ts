@@ -1,5 +1,6 @@
 import {
   COSTLY_REST_SUPPLY_COST,
+  canonicalJson,
   type GameEvent,
   type GameState,
   SCHEMA_VERSION,
@@ -67,6 +68,7 @@ export function applyGameEvent(
       case "command_accepted":
       case "command_rejected":
       case "enemy_action_selected":
+      case "transaction_compensated":
         break;
       case "check_resolved":
         if ("pending_check_id" in event.payload) {
@@ -130,6 +132,35 @@ export function applyGameEvent(
           next.combat.pending_death_check_id = event.payload.pending_check_id;
         }
         break;
+      case "physical_roll_cancelled": {
+        const pending = next.pending_physical_checks.find(
+          ({ pending_check_id }) =>
+            pending_check_id === event.payload.pending_check_id,
+        );
+        if (pending === undefined) {
+          return eventFailure(event, "Physical check is not pending.");
+        }
+        if (pending.continuation?.kind === "ritual") {
+          const ritualId = pending.continuation.ritual_id;
+          const ritual = next.rituals.find(
+            ({ ritual_id }) => ritual_id === ritualId,
+          );
+          if (ritual?.status === "awaiting_resolution") ritual.status = "ready";
+        }
+        if (next.combat?.pending_death_check_id === pending.pending_check_id) {
+          next.combat.pending_death_check_id = null;
+          next.combat.status = "active";
+        }
+        if (next.combat?.pending_action_check_id === pending.pending_check_id) {
+          next.combat.pending_action_check_id = null;
+          next.combat.status = "active";
+        }
+        next.pending_physical_checks = next.pending_physical_checks.filter(
+          ({ pending_check_id }) =>
+            pending_check_id !== event.payload.pending_check_id,
+        );
+        break;
+      }
       case "spark_spent": {
         const character = characterByActorId(next, event.payload.actor_id);
         if (character === undefined) {
@@ -139,6 +170,14 @@ export function applyGameEvent(
           return eventFailure(event, "Spark is already unavailable.");
         }
         character.resources.spark.available = false;
+        break;
+      }
+      case "spark_restored_by_compensation": {
+        const character = characterByActorId(next, event.payload.actor_id);
+        if (character === undefined || character.resources.spark.available) {
+          return eventFailure(event, "Spent Spark cannot be compensated.");
+        }
+        character.resources.spark.available = true;
         break;
       }
       case "character_materialized":
@@ -483,6 +522,29 @@ export function applyGameEvent(
         }
         break;
       }
+      case "action_slot_restored": {
+        const combat = next.combat;
+        const participant = combat?.participants.find(
+          ({ actor_id }) => actor_id === event.payload.actor_id,
+        );
+        if (
+          combat === null ||
+          combat === undefined ||
+          combat.combat_id !== event.payload.combat_id ||
+          participant === undefined
+        ) {
+          return eventFailure(event, "Combat slot owner is unavailable.");
+        }
+        if (event.payload.slot === "action")
+          participant.action_available = true;
+        else if (event.payload.slot === "maneuver") {
+          participant.maneuver_available = true;
+        } else participant.reaction_available = true;
+        participant.activation_spent = false;
+        combat.active_actor_id = participant.actor_id;
+        combat.active_side = participant.side;
+        break;
+      }
       case "actor_moved": {
         if (
           next.combat === null ||
@@ -610,8 +672,7 @@ export function applyGameEvent(
         }
         const differences = character.resources.wounds.filter(
           (wound, index) =>
-            JSON.stringify(wound) !==
-            JSON.stringify(event.payload.wounds[index]),
+            canonicalJson(wound) !== canonicalJson(event.payload.wounds[index]),
         );
         if (differences.length !== 1 || differences[0]?.status !== "empty") {
           return eventFailure(

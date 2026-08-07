@@ -1,14 +1,12 @@
 import {
   type CampaignId,
   type CommandId,
-  canonicalJson,
   type GameEvent,
   type GameState,
-  type StateHash,
   type TransactionId,
-  taggedSha256,
   validateGameState,
 } from "@lldm/contracts";
+import { hashGameState } from "../hashing/state-hash.js";
 import type {
   AtomicCommandStore,
   AtomicCommitInput,
@@ -35,10 +33,6 @@ export interface CreateInMemoryCampaignInput {
   readonly seed: Uint8Array;
 }
 
-function hashState(state: GameState): StateHash {
-  return taggedSha256(canonicalJson(state)) as StateHash;
-}
-
 export class InMemoryAtomicStore implements AtomicStorePort {
   #data: InMemoryData = {
     readiness: { status: "current" },
@@ -61,7 +55,7 @@ export class InMemoryAtomicStore implements AtomicStorePort {
       campaign_id: input.state.campaign_id,
       revision: 0,
       state: structuredClone(validated.value),
-      state_hash: hashState(validated.value),
+      state_hash: hashGameState(validated.value),
       seed: structuredClone(input.seed),
       events: [],
     });
@@ -105,6 +99,44 @@ export class InMemoryAtomicStore implements AtomicStorePort {
         const campaign = draft.campaigns.get(campaignId);
         return campaign === undefined ? null : structuredClone(campaign.seed);
       },
+      loadUndoCandidate: (campaignId, targetTransactionId) => {
+        const commits = [...draft.commands.values()]
+          .map(({ commit }) => commit)
+          .filter(
+            ({ transaction }) =>
+              transaction.campaign_id === campaignId &&
+              transaction.outcome !== "rejected" &&
+              transaction.pre_state_hash !== transaction.post_state_hash,
+          )
+          .sort(
+            (left, right) =>
+              right.transaction.last_revision - left.transaction.last_revision,
+          );
+        const latest = commits[0];
+        if (latest === undefined) return { status: "none" as const };
+        if (
+          targetTransactionId !== null &&
+          targetTransactionId !== latest.transaction.transaction_id
+        ) {
+          return {
+            status: "target_not_latest" as const,
+            latest_transaction_id: latest.transaction.transaction_id,
+          };
+        }
+        return {
+          status: "found" as const,
+          candidate: {
+            transaction: latest.transaction,
+            events: latest.events,
+            already_compensated: commits.some(
+              ({ transaction }) =>
+                transaction.outcome === "undo" &&
+                transaction.undo_target_transaction_id ===
+                  latest.transaction.transaction_id,
+            ),
+          },
+        };
+      },
       commit: (input) => this.#commitDraft(draft, input),
     };
     const result = operation(atomic);
@@ -146,7 +178,7 @@ export class InMemoryAtomicStore implements AtomicStorePort {
         throw new Error("Commit event identity or ordering is invalid.");
       }
     });
-    if (hashState(input.post_state) !== input.post_state_hash) {
+    if (hashGameState(input.post_state) !== input.post_state_hash) {
       throw new Error("Commit post-state hash is invalid.");
     }
 

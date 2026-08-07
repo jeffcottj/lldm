@@ -1,6 +1,6 @@
 # Phase 1 — Deterministic Engine and Persistence
 
-**Status:** Implementation in progress
+**Status:** Complete
 
 **Parent plan:** [PRIMARY_PLAN.md](../../PRIMARY_PLAN.md)
 
@@ -290,14 +290,14 @@ Use the Phase 0 status meanings unchanged: **Complete**, **Ready**, **Pending**,
 | P1-040 | Author the pinned rank-one and vertical-slice content catalog | P1-024, P1-032, P1-033, P1-034 | Complete | A canonically hashed 54-definition manifest, six distinct rank-one archetypes/signatures, four materializable starter loadouts with ready/spent gear, two enemies plus objective/overlay, and challenge/social/ritual examples pass 186 tests, clean-room checks, and generated-reference drift checks. |
 | P1-041 | Add representative fixtures, invariants, and deterministic scenario | P1-040 | Complete | The runtime-validated Floodgate/Echo Lantern JSON fixture drives four production starters through five zones, squad and boss combat, objective/overlay transitions, a recoverable physical continuation, challenge/social/ritual conclusions, literal draws/event order, and reviewed pending/final state hashes; focused death/reaction/zone branches plus 64 fixed-seed bounded simulations pass 189 tests, with observed check degrees 101 Crisis, 110 Setback, 122 Success, and 179 Triumph and no win-rate gate. |
 | P1-050 | Implement runtime ports and transactional command coordination | P1-020, P1-030, P1-031, P1-040 | Complete | Narrow clock/seed/identity/random/content/decider/projector/atomic-store ports and a SQLite-independent coordinator implement centralized validation, canonical identity hashing, retry-before-revision, non-canonical identity collisions, canonical stale/legality rejection, deterministic envelopes/draws, event application, state hashes, projections, and atomic commit; instrumented fake-port and injected-failure tests prove retry makes zero prohibited calls and pass with 194 total tests. |
-| P1-051 | Implement SQLite migration 1, store adapter, and backups | P1-050 | Ready | Not yet implemented. |
-| P1-052 | Implement canonical hashing, replay, snapshots, and recovery | P1-041, P1-051 | Pending | Not yet implemented. |
-| P1-053 | Implement transactional projections and visibility rebuilds | P1-034, P1-051, P1-052 | Pending | Not yet implemented. |
-| P1-054 | Implement compensating undo | P1-033, P1-034, P1-051, P1-052 | Pending | Not yet implemented. |
-| P1-060 | Implement the scriptable CLI | P1-041, P1-051, P1-052, P1-053, P1-054 | Pending | Not yet implemented. |
-| P1-061 | Run failure, restart, retry, and fresh-database integration scenarios | P1-060 | Pending | Not yet implemented. |
-| P1-070 | Complete generated references and accept ADR-0002 | P1-041, P1-061 | Pending | Not yet implemented. |
-| P1-080 | Run and record the Phase 1 exit audit | P1-061, P1-070 | Pending | Not yet implemented. |
+| P1-051 | Implement SQLite migration 1, store adapter, and backups | P1-050 | Complete | Immutable checksummed migration 1 creates strict campaign/command/transaction/event/snapshot/projection storage; verified sibling backups, registry-state detection, rollback of DDL and `user_version`, WAL/foreign-key/durability policy, canonical read validation, real atomic commits, cross-row causation constraints, reopen, and exact SQLite retry behavior pass 202 tests in 27 files. |
+| P1-052 | Implement canonical hashing, replay, snapshots, and recovery | P1-041, P1-051 | Complete | Shared validated state canonicalization/hashing, transaction-boundary full replay, atomically triggered scene/session snapshots, snapshot-plus-tail replay, explicit corrupt-snapshot fallback, cached-head verification, and read-only command re-execution audit pass 207 tests in 28 files; replay itself calls no clock, entropy, random, or ID allocator. |
+| P1-053 | Implement transactional projections and visibility rebuilds | P1-034, P1-051, P1-052 | Complete | Central public-TV, character/eligible-seat-private, and host-control schemas plus a pure engine-enumerator-backed projector update all rows atomically at every accepted/rejected stream head; planted private social facts stay out of public JSON, failed projection aborts commit, and verified replay rebuilds are byte-identical while canonical rows/hashes remain unchanged across 209 tests in 29 files. |
+| P1-054 | Implement compensating undo | P1-033, P1-034, P1-051, P1-052 | Complete | Central undo command/audit variants, exhaustive engine event classification, named inverses for safely reversible resource/movement/stance/leverage/condition and pending-physical changes, runtime latest-eligible lookup, linked undo transactions, nonce invalidation/Spark restoration, and stable blocks for prior undo, submitted dice, death, stale targets, and non-invertible dependencies replay correctly across 212 tests in 30 files. |
+| P1-060 | Implement the scriptable CLI | P1-041, P1-051, P1-052, P1-053, P1-054 | Complete | The thin CLI implements explicit db status/migrate, campaign create/show, command submit, scenario run, replay verify/audit, snapshot list/verify, projection show/rebuild, and undo; required database paths, file/stdin parity, versioned JSON, fixture-only seed/time flags, redacted errors, documented exit codes/help, and separate-process reopen tests pass. |
+| P1-061 | Run failure, restart, retry, and fresh-database integration scenarios | P1-060 | Complete | A fresh temporary database CLI audit runs the production Floodgate/Echo Lantern fixture to 172 transactions/437 events at literal final hash `sha256:74d159fb4d1b2682078010d017cfae867f06f61723270ff7c3eeae512a560558`, then verifies cross-process retry/collision/stale rejection, four-plus threshold snapshots, full/snapshot replay, command re-execution, and projection rebuild; a second restart sequence proves eligible undo, pre-disclosed physical request, later-process one-use face submission, exact retry, duplicate rejection, prohibited undo, and final replay. The audit also found and fixed insertion-order-sensitive engine content comparisons. |
+| P1-070 | Complete generated references and accept ADR-0002 | P1-041, P1-061 | Complete | The generated mechanical reference now derives serialized/state/protocol/canonical/random/storage versions, the migration checksum, transaction/retry/replay/projection/undo behavior, and the 100-event snapshot threshold from public definitions alongside all locked mechanics; the generated playable reference covers the complete 54-definition manifest and explicit deferrals. Consecutive generations produced identical hashes, `docs:check`, typecheck, and formatting pass, ADR-0002 is Accepted and implementation-accurate, and the glossary describes Phase 1 canonical/derived boundaries without forking rules. |
+| P1-080 | Run and record the Phase 1 exit audit | P1-061, P1-070 | Complete | Node 24.19.0, pnpm 11.13.0, frozen install, root formatting/lint/typecheck/docs gates, and all 217 tests in 32 files pass. The six-project dependency graph and engine/runtime purity audits pass; migration, replay/fallback, projection privacy/rebuild, undo, retry/collision, physical restart, and fixed-seed CLI coverage remain green. Two consecutive generations have identical hashes, ADR-0002 is Accepted, deferred Phase 2 directories are absent, and no executable-scope TODO remains. |
 
 The critical path is:
 
@@ -944,7 +944,7 @@ pnpm typecheck
 
 ### P1-051 — Implement SQLite migration 1, store adapter, and backups
 
-**Status:** Ready
+**Status:** Complete
 
 **Depends on:** P1-050
 
@@ -976,7 +976,7 @@ The automated test owns creation/removal of its temporary path. Do not point val
 
 ### P1-052 — Implement canonical hashing, replay, snapshots, and recovery
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P1-041, P1-051
 
@@ -1005,7 +1005,7 @@ pnpm typecheck
 
 ### P1-053 — Implement transactional projections and visibility rebuilds
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P1-034, P1-051, P1-052
 
@@ -1032,7 +1032,7 @@ pnpm typecheck
 
 ### P1-054 — Implement compensating undo
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P1-033, P1-034, P1-051, P1-052
 
@@ -1059,7 +1059,7 @@ pnpm typecheck
 
 ### P1-060 — Implement the scriptable CLI
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P1-041, P1-051, P1-052, P1-053, P1-054
 
@@ -1101,7 +1101,7 @@ pnpm lldm -- scenario run --help
 
 ### P1-061 — Run failure, restart, retry, and fresh-database integration scenarios
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P1-060
 
@@ -1141,7 +1141,7 @@ pnpm verify
 
 ### P1-070 — Complete generated references and accept ADR-0002
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P1-041, P1-061
 
@@ -1173,7 +1173,7 @@ pnpm format:check
 
 ### P1-080 — Run and record the Phase 1 exit audit
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P1-061, P1-070
 
@@ -1220,6 +1220,14 @@ test ! -d apps/relay
 test ! -d packages/providers
 git status --short
 ```
+
+**Recorded exit evidence (2026-08-07)**
+
+- Toolchain: Node 24.19.0 and pnpm 11.13.0; `pnpm install --frozen-lockfile` reported the six-project workspace current.
+- Root gate: `pnpm verify` passed formatting, lint, TypeScript build, 217 tests in 32 files, and generated-document drift checking.
+- Fresh-database literal: 172 commands/transactions, 437 events/revision, and final state hash `sha256:74d159fb4d1b2682078010d017cfae867f06f61723270ff7c3eeae512a560558`; the separate restart fixture covered compensating undo and the nonce-bound physical result.
+- Generated hashes were stable across consecutive runs: mechanical reference `8dec84d5f3d4ecfbcc05169148d8e583021ffa272ef886729b61294506fe4896`, playable content `7f7ba2b7defbecbd9b78acc113682c79b078f2dfba1262878262bf1b8aa51e3b`, and probability report `14a063e250a020e7c0cc9d4ff3384494e2214dcf74d6c33075957f40d0a8e09a`.
+- `@lldm/engine` depends only on `@lldm/contracts`; SQLite dependencies remain behind the runtime adapter seam. `apps/host`, `apps/web`, `apps/relay`, and `packages/providers` remain absent for Phase 2 and later.
 
 ## 9. Continuous Documentation and Change Protocol
 

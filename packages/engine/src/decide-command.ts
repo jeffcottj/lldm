@@ -1103,6 +1103,10 @@ export function decideCommand(input: CommandDecisionInput): CommandDecision {
       return decideResolveRitual({ ...input, command: input.command });
     case "interrupt_ritual":
       return decideInterruptRitual({ ...input, command: input.command });
+    case "undo_transaction":
+      return reject(
+        "Undo requires runtime-selected canonical transaction context.",
+      );
     default:
       return assertNever(input.command);
   }

@@ -1,4 +1,5 @@
-import { mkdirSync, chmodSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync } from "node:fs";
+import { isDeepStrictEqual } from "node:util";
 import { basename, dirname, join } from "node:path";
 import Database from "better-sqlite3";
 import { taggedSha256 } from "@lldm/contracts";
@@ -35,13 +36,15 @@ CREATE TABLE commands (
   command_hash TEXT NOT NULL CHECK (command_hash GLOB 'sha256:[0-9a-f]*' AND length(command_hash) = 71),
   outcome TEXT NOT NULL CHECK (outcome IN ('accepted', 'rejected', 'undo')),
   committed_transaction_id TEXT NOT NULL UNIQUE,
-  result_json TEXT NOT NULL CHECK (json_valid(result_json))
+  result_json TEXT NOT NULL CHECK (json_valid(result_json)),
+  UNIQUE (campaign_id, command_id),
+  CHECK (committed_transaction_id = transaction_id)
 ) STRICT;
 
 CREATE TABLE transactions (
   transaction_id TEXT PRIMARY KEY,
   campaign_id TEXT NOT NULL REFERENCES campaigns(campaign_id) ON DELETE RESTRICT,
-  command_id TEXT NOT NULL UNIQUE REFERENCES commands(command_id) ON DELETE RESTRICT,
+  command_id TEXT NOT NULL UNIQUE,
   first_revision INTEGER NOT NULL CHECK (first_revision > 0),
   last_revision INTEGER NOT NULL CHECK (last_revision >= first_revision),
   event_count INTEGER NOT NULL CHECK (event_count > 0 AND event_count = last_revision - first_revision + 1),
@@ -55,6 +58,9 @@ CREATE TABLE transactions (
   committed_at TEXT NOT NULL,
   UNIQUE (campaign_id, first_revision),
   UNIQUE (campaign_id, last_revision),
+  UNIQUE (campaign_id, transaction_id),
+  UNIQUE (transaction_id, command_id, campaign_id),
+  FOREIGN KEY (campaign_id, command_id) REFERENCES commands(campaign_id, command_id) ON DELETE RESTRICT,
   CHECK ((outcome = 'rejected' AND rejection_code IS NOT NULL AND safe_detail IS NOT NULL AND pre_state_hash = post_state_hash) OR (outcome <> 'rejected' AND rejection_code IS NULL AND safe_detail IS NULL)),
   CHECK ((outcome = 'undo' AND undo_target_transaction_id IS NOT NULL) OR (outcome <> 'undo' AND undo_target_transaction_id IS NULL))
 ) STRICT;
@@ -63,13 +69,15 @@ CREATE TABLE events (
   campaign_id TEXT NOT NULL REFERENCES campaigns(campaign_id) ON DELETE RESTRICT,
   stream_revision INTEGER NOT NULL CHECK (stream_revision > 0),
   event_id TEXT NOT NULL UNIQUE,
-  transaction_id TEXT NOT NULL REFERENCES transactions(transaction_id) ON DELETE RESTRICT,
+  transaction_id TEXT NOT NULL,
   transaction_index INTEGER NOT NULL CHECK (transaction_index >= 0),
-  caused_by_command_id TEXT NOT NULL REFERENCES commands(command_id) ON DELETE RESTRICT,
+  caused_by_command_id TEXT NOT NULL,
   kind TEXT NOT NULL,
   canonical_json TEXT NOT NULL CHECK (json_valid(canonical_json)),
   PRIMARY KEY (campaign_id, stream_revision),
-  UNIQUE (transaction_id, transaction_index)
+  UNIQUE (transaction_id, transaction_index),
+  FOREIGN KEY (campaign_id, transaction_id) REFERENCES transactions(campaign_id, transaction_id) ON DELETE RESTRICT,
+  FOREIGN KEY (transaction_id, caused_by_command_id, campaign_id) REFERENCES transactions(transaction_id, command_id, campaign_id) ON DELETE RESTRICT
 ) STRICT;
 
 CREATE TABLE snapshots (
@@ -77,9 +85,9 @@ CREATE TABLE snapshots (
   campaign_id TEXT NOT NULL REFERENCES campaigns(campaign_id) ON DELETE RESTRICT,
   revision INTEGER NOT NULL CHECK (revision >= 0),
   state_schema_version INTEGER NOT NULL CHECK (state_schema_version = 1),
-  content_manifest_hash TEXT NOT NULL,
-  state_hash TEXT NOT NULL,
-  trigger TEXT NOT NULL,
+  content_manifest_hash TEXT NOT NULL CHECK (content_manifest_hash GLOB 'sha256:[0-9a-f]*' AND length(content_manifest_hash) = 71),
+  state_hash TEXT NOT NULL CHECK (state_hash GLOB 'sha256:[0-9a-f]*' AND length(state_hash) = 71),
+  trigger TEXT NOT NULL CHECK (trigger IN ('scene_transition', 'session_boundary', 'event_threshold', 'checkpoint')),
   state_json TEXT NOT NULL CHECK (json_valid(state_json)),
   stored_at TEXT NOT NULL,
   UNIQUE (campaign_id, revision)
@@ -163,13 +171,21 @@ export function readMigrationStatus(
   database: Database.Database,
 ): SqliteMigrationStatus {
   const latest = SQLITE_MIGRATIONS.at(-1)?.version ?? 0;
+  const userVersion = Number(database.pragma("user_version", { simple: true }));
   if (!tableExists(database, "schema_migrations")) {
     const applicationTables = database
       .prepare(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
       )
       .all();
-    return applicationTables.length === 0
+    if (userVersion > latest) {
+      return {
+        status: "future",
+        current_version: userVersion,
+        runtime_version: latest,
+      };
+    }
+    return applicationTables.length === 0 && userVersion === 0
       ? {
           status: "pending",
           current_version: 0,
@@ -220,6 +236,16 @@ export function readMigrationStatus(
       };
     }
   }
+  if (
+    rows.some((row, index) => row.version !== index + 1) ||
+    userVersion !== currentVersion
+  ) {
+    return {
+      status: "incompatible",
+      safe_detail:
+        "SQLite user_version and the ordered migration registry do not agree.",
+    };
+  }
   const pending = SQLITE_MIGRATIONS.filter(
     ({ version }) => version > currentVersion,
   ).map(({ version }) => version);
@@ -245,8 +271,12 @@ function verifyBackup(
     const integrity = backup.pragma("integrity_check", { simple: true });
     if (integrity !== "ok")
       throw new Error("SQLite backup integrity check failed.");
+    const foreignKeyFailures = backup.pragma("foreign_key_check") as unknown[];
+    if (foreignKeyFailures.length !== 0) {
+      throw new Error("SQLite backup foreign-key check failed.");
+    }
     const actual = readMigrationStatus(backup);
-    if (actual.status !== expectedStatus.status) {
+    if (!isDeepStrictEqual(actual, expectedStatus)) {
       throw new Error(
         "SQLite backup does not preserve the prior schema status.",
       );
@@ -295,8 +325,10 @@ export function migrateSqliteDatabase(
       backupDirectory,
       `${basename(options.database_path)}.before-v${before.pending_versions[0] ?? 1}.${safeTimestamp}.sqlite`,
     );
-    database.exec(`VACUUM INTO ${quoteSqliteString(backupPath)}`);
-    chmodSync(backupPath, 0o600);
+    if (!existsSync(backupPath)) {
+      database.exec(`VACUUM INTO ${quoteSqliteString(backupPath)}`);
+      chmodSync(backupPath, 0o600);
+    }
     verifyBackup(backupPath, before);
 
     database.exec("BEGIN IMMEDIATE");
@@ -331,6 +363,17 @@ export function migrateSqliteDatabase(
       database.exec("ROLLBACK");
       throw error;
     }
+  } finally {
+    database.close();
+  }
+}
+
+export function readSqliteDatabaseStatus(
+  databasePath: string,
+): SqliteMigrationStatus {
+  const database = new Database(databasePath);
+  try {
+    return readMigrationStatus(database);
   } finally {
     database.close();
   }

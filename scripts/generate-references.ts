@@ -4,7 +4,13 @@ import {
   CharacterFoundationSchema,
   OUTCOME_DEGREES,
   PlayableCharacterStateSchema,
+  PROTOCOL_VERSION,
+  RANDOMNESS_ALGORITHM_VERSION,
+  SCHEMA_VERSION,
   STANDARD_TARGETS,
+  STATE_CANONICALIZATION_VERSION,
+  STATE_SCHEMA_VERSION,
+  STORAGE_MIGRATION_VERSION,
 } from "@lldm/contracts";
 import {
   ATTRIBUTE_METADATA,
@@ -32,6 +38,7 @@ import {
   enumerateOutcomeCounts,
   formatOutcomePercentage,
 } from "@lldm/engine";
+import { SNAPSHOT_EVENT_THRESHOLD, SQLITE_MIGRATIONS } from "@lldm/runtime";
 
 const GENERATED_WARNING =
   "> Generated from executable LLDM definitions. Do not edit by hand. Run `pnpm docs:generate` to regenerate.";
@@ -57,6 +64,12 @@ function physicalReasonLabel(reason: string): string {
 }
 
 export function renderMechanicalReference(): string {
+  const currentMigration = SQLITE_MIGRATIONS.at(-1);
+  if (currentMigration?.version !== STORAGE_MIGRATION_VERSION) {
+    throw new Error(
+      "The public storage migration version and SQLite registry disagree.",
+    );
+  }
   const attributes = Object.entries(ATTRIBUTE_METADATA).map(
     ([identifier, metadata]) => [identifier, metadata.description],
   );
@@ -217,6 +230,25 @@ ${CORE_RULES.ritual_interruption.text}
 ### ${CORE_RULES.condition_duration.title}
 
 ${CORE_RULES.condition_duration.text}
+
+## Deterministic transactions and local persistence
+
+| Versioned boundary | Current value |
+| --- | --- |
+| Serialized schema | ${SCHEMA_VERSION} |
+| Transport protocol | ${PROTOCOL_VERSION} |
+| Mechanical state schema | ${STATE_SCHEMA_VERSION} |
+| Canonical JSON | ${STATE_CANONICALIZATION_VERSION} |
+| Simulated randomness | \`${RANDOMNESS_ALGORITHM_VERSION}\` |
+| SQLite migration | ${currentMigration.version} (\`${currentMigration.name}\`, checksum \`${currentMigration.checksum}\`) |
+
+A command ID permanently binds its validated canonical JSON and hash. An exact retry returns the already stored transaction without consulting the clock, content catalog, engine, random source, projector, snapshot policy, entropy, or ID allocator. Reusing either a command ID or transaction ID for different canonical command bytes is an identity collision and appends nothing. A structurally valid stale or illegal command instead commits one typed rejection event with identical pre-state and post-state hashes.
+
+Each accepted, rejected, or compensating-undo command commits one contiguous event range atomically with its command row, transaction record, state head, audience projections, and any triggered snapshot. Events contain resolved mechanical facts; replay applies those events without rerunning command decisions, content lookup, randomness, or physical dice.
+
+Snapshots are validated, disposable replay accelerators written at scene and session boundaries or after ${SNAPSHOT_EVENT_THRESHOLD} events since the latest snapshot. Invalid snapshots produce an explicit diagnostic and full event-replay fallback. Public-TV, eligible-seat-private, and host-control projections are derived at every stream revision and can be rebuilt byte-for-byte without changing canonical history.
+
+Undo never edits or deletes history. It appends typed compensating events only for the latest eligible mechanical transaction; submitted physical dice, permanent death, prior undo, stale targets, and non-invertible dependencies remain non-undoable.
 
 Production paths, rank-three talents, rank-four capstones, broad catalogs, room applications, and generated-fiction systems remain unavailable in Phase 1.
 `;

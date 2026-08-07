@@ -5,7 +5,12 @@ export default defineConfig({
   root: fileURLToPath(new URL(".", import.meta.url)),
   test: {
     environment: "node",
-    include: ["packages/**/*.test.ts", "test/**/*.test.ts"],
+    fileParallelism: false,
+    include: [
+      "apps/**/*.test.ts",
+      "packages/**/*.test.ts",
+      "test/**/*.test.ts",
+    ],
     setupFiles: ["./test/no-network.ts"],
     sequence: {
       concurrent: false,
