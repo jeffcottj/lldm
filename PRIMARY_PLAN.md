@@ -1,6 +1,7 @@
-# AIDM2 Living-Room RPG
+# LLDM Living-Room RPG
 
-**Status:** Ready for implementation  
+**Status:** Phase 0 complete; ready for Phase 1 implementation
+
 **Date:** 2026-08-07  
 **Outcome:** A one-household living-room RPG prototype for 3–5 adult players, with a deterministic TypeScript rules engine and an LLM-powered game runner delivering voice-first, persistent heroic-fantasy play.
 
@@ -8,7 +9,7 @@
 
 ### Repository findings
 
-The repository at `/home/john/repos/aidm2` was empty when planning began. It was not initialized as a Git repository and contained no source, configuration, tests, documentation, or prior `AGENTS.md`.
+The repository at `/home/john/repos/lldm` is initialized on `main`, tracks its GitHub `origin`, and now contains the completed [Phase 0 executable foundation](docs/plans/PHASE_0.md): a locked Node 24/pnpm workspace, strict quality tooling and CI, the private `@lldm/contracts`, `@lldm/engine`, and `@lldm/content` packages, runtime schemas, pure resolution rules, 87 passing tests, generated mechanical references, and syntax-validated Compose and Wrangler placeholders. It still contains no reducer, event store, application, provider adapter, playable content catalog, or deployable service; those remain in later phases.
 
 Useful host capabilities already available are Node.js 24, npm, pnpm, Docker, Git, GitHub CLI, Playwright CLI, ffmpeg, curl, jq, and OpenSSL. Rust is not installed and is no longer required because the selected stack is TypeScript throughout. Cloudflare Wrangler should be added as a pinned project development dependency rather than installed globally.
 
@@ -73,6 +74,7 @@ Routine narration stays below about 15 seconds, combat beats below 10 seconds, a
 - Starting attribute ratings are assigned as `+2, +1, +1, 0`.
 - Eight disciplines are Athletics, Subterfuge, Craft, Lore, Vigilance, Influence, Survival, and Mysticism.
 - Disciplines are rated `+2 trained`, `+1 familiar`, or `0 untrained`.
+- Starting characters assign one discipline as trained, three as familiar, and four as untrained.
 - Resolve `d20 + attribute + discipline + situational modifier` against targets `10, 13, 16, 19, 22`.
 - Permit at most one Edge (`+2`) and one Hindrance (`-2`). They cancel and never stack.
 - A result at least five below the target is a Crisis.
@@ -187,7 +189,7 @@ Returning devices reconnect to their approved seats and receive filtered deltas 
 
 ### Repository shape
 
-Create a strict TypeScript pnpm workspace using Node 24:
+Create a strict TypeScript pnpm workspace using Node 24. Workspace packages are private and use the `@lldm` scope:
 
 - `packages/contracts`: TypeBox/JSON Schema definitions for commands, events, content, AI proposals, and projections.
 - `packages/engine`: pure deterministic reducer with no database, network, wall clock, or global randomness.
@@ -224,7 +226,7 @@ Canonical public unions include:
 - `ContentDefinition`: prerequisites, action slot, cost, target mode, range, Impact, conditions, narrative permissions, and rule text.
 - `Projection`: revisioned public-TV, private-player, and host-control views.
 
-All IDs are opaque branded strings. Every schema carries `schema_version`, and every transport message carries `protocol_version`.
+All IDs are opaque branded strings. Every independently serialized schema carries an integer `schema_version`, and every transport message carries an integer `protocol_version`; both begin at `1`.
 
 ### Relay and identity
 
@@ -307,7 +309,7 @@ Set a soft $15 three-hour-session budget. At 80%, privately notify the player-ho
 - Use campaign Lines and Veils as hard generation constraints.
 - An any-player safety pause immediately stops TTS, music, recording, and command processing.
 - Target adults only. Child accounts, regulated data, payments, and public moderation are not applicable.
-- Maintain a clean-room provenance log from the first commit.
+- Maintain a lightweight clean-room policy that defines permitted source categories, originality review, and explicit license handling without requiring a per-change provenance ledger.
 - Require explicit compatible licenses and attribution for third-party audiovisual assets.
 
 ### Accessibility and performance
@@ -341,20 +343,27 @@ Migration from existing application data is not applicable because this is a gre
 
 ### Phase 0 — Repository and executable rules foundation
 
-- Initialize Git and the pnpm workspace.
-- Add Node 24, strict TypeScript, Biome, Vitest, Playwright, Docker Compose, and Wrangler configuration.
-- Add `AGENTS.md`, this plan, the clean-room provenance log, an architecture record, a glossary, and the mechanical rules reference.
-- Implement canonical schemas, core d20 math, Edge/Hindrance, outcome degrees, physical-roll triggers, and character foundations.
-- Generate the probability report and mechanical reference tables from executable definitions.
+**Detailed execution plan:** [`docs/plans/PHASE_0.md`](docs/plans/PHASE_0.md)
 
-**Exit criterion:** The core resolution examples pass and generated mechanical tables agree with engine definitions.
+Phase 0 is complete. Its delivered scope is:
+
+- Create the Node 24 pnpm workspace with only `@lldm/contracts`, `@lldm/engine`, and `@lldm/content`; defer application and provider packages.
+- Add strict TypeScript, TypeBox, Biome, Vitest, Playwright, a minimal GitHub Actions quality gate, and tooling-ready Docker Compose and Wrangler placeholders.
+- Add integer-versioned canonical envelopes and fully define only the resolution, physical-roll, and character-foundation contracts required in this phase.
+- Implement pure d20 math, Edge/Hindrance cancellation, outcome degrees, natural-face shifts, physical-roll selection/disclosure, and starting-character allocation validation.
+- Add one foundational architecture record, a glossary, and a lightweight clean-room policy.
+- Generate and commit the probability report and mechanical reference from authoritative executable definitions.
+
+Reducers, persistence, replay execution, applications, providers, complete character options, and playable combat remain deferred to their later phases. The local exit audit passes formatting, lint, strict type checking, 87 tests (including all 900 supported d20 cases), generated-document drift checks, Docker Compose validation, and Wrangler generated-type validation under Node 24.14.0 and pnpm 11.13.0.
+
+**Exit criterion:** Readable core examples and exhaustive legal d20 cases pass; the committed generated tables reproduce byte-for-byte from engine definitions; schema, type, lint, and generated-drift checks pass in CI; and the baseline Compose and Wrangler configurations validate without deployable application stubs.
 
 ### Phase 1 — Deterministic engine and persistence
 
-- Implement validation, reducers, seeded randomness, event replay, snapshots, SQLite migrations, projections, compensating undo, and a CLI simulator.
+- Extend schema validation into transactional command handling, then implement reducers, seeded randomness, event replay, snapshots, SQLite migrations, projections, compensating undo, and a CLI simulator.
 - Implement ranks 1–4 structures, Guard/Wounds, Exertion/Spark/Supply, named zones, alternating activations, fixed Impact, death tests, progress/danger tracks, social motives, and typed rituals.
 - Add the six archetype identities and enough complete rank-one content to simulate a four-hero encounter.
-- Implement content validation and generated rules-reference output.
+- Extend content validation and generated rules-reference output for the Phase 1 mechanics and initial playable content.
 
 **Exit criterion:** Replaying the representative event fixtures produces the same state hashes, and focused invariant tests reject invalid resources, activations, zone relationships, and death states.
 
@@ -436,7 +445,7 @@ Each case must produce a typed, user-visible recovery state without corrupting c
 - **Relay interruption:** Use acknowledgements, sequence numbers, idempotency, reconnect snapshots, and local canonical ownership.
 - **Rules imbalance:** Constrain modifiers, generate rules tables from code, simulate encounters, and limit the prototype to ranks 1–4.
 - **Lightweight AI testing:** Keep defaults stable between sessions and manually try representative inputs after a model or prompt change.
-- **Intellectual-property contamination:** Maintain the clean-room provenance log and license manifest from the first commit.
+- **Intellectual-property contamination:** Enforce the clean-room policy from Phase 0 and require a compatible license and attribution manifest for third-party assets.
 - **Abrupt character loss:** Permit routine danger to cause a dying state, but require the final transparent physical death test before permanent loss.
 - **Generated-media latency:** Generate asynchronously, retain prior assets, and always provide deterministic backgrounds and audio cues.
 
@@ -451,6 +460,7 @@ Each case must produce a typed, user-visible recovery state without corrupting c
 - OpenRouter is the sole runtime gateway behind a replaceable adapter; OpenAI models, when used, are reached through OpenRouter.
 - Physical player-entered d20 rolls are sparse, dramatic, and transparent.
 - Routine simulated rolls remain hidden.
+- Starting discipline allocation is one trained, three familiar, and four untrained.
 - Characters use modular archetypes and cross-pillar options through rank 4.
 - Combat uses named zones, alternating spotlight activations, fixed Impact, and Guard plus Wounds.
 - Campaigns use generated frames, prepared hidden episode skeletons, and live improvisation.

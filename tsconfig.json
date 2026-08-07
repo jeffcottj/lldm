@@ -1,0 +1,18 @@
+{
+  "files": [
+    "playwright.config.ts",
+    "vitest.config.ts",
+    "scripts/generate-references.ts",
+    "test/no-network.ts"
+  ],
+  "references": [
+    { "path": "packages/contracts" },
+    { "path": "packages/engine" },
+    { "path": "packages/content" }
+  ],
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist/root"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "lldm",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.13.0",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "config:check": "docker compose -f compose.yaml config --quiet && wrangler --config wrangler.jsonc types types/wrangler.d.ts --check",
+    "docs:check": "tsx scripts/generate-references.ts --check",
+    "docs:generate": "tsx scripts/generate-references.ts",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "playwright:check": "playwright test --list --pass-with-no-tests",
+    "test": "vitest run",
+    "typecheck": "tsc --build",
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm docs:check"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.7",
+    "@lldm/content": "workspace:*",
+    "@lldm/contracts": "workspace:*",
+    "@lldm/engine": "workspace:*",
+    "@playwright/test": "1.62.1",
+    "@types/node": "24.10.13",
+    "@vitest/coverage-v8": "4.1.10",
+    "tsx": "4.23.11",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10",
+    "wrangler": "4.120.0"
+  }
+}

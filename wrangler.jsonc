@@ -1,0 +1,6 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // Runnable Worker code, bindings, routes, and deploy targets begin in Phase 2.
+  "name": "lldm-relay-placeholder",
+  "compatibility_date": "2026-08-07"
+}

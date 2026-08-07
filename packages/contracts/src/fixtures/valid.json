@@ -1,0 +1,451 @@
+{
+  "resolve_check_command": {
+    "schema_version": 1,
+    "command_id": "command_resolve_001",
+    "transaction_id": "transaction_resolve_001",
+    "campaign_id": "campaign_ember_001",
+    "kind": "resolve_check",
+    "payload": {
+      "request": {
+        "schema_version": 1,
+        "actor_id": "actor_sable_001",
+        "attribute": "Insight",
+        "attribute_rating": 2,
+        "discipline": "Lore",
+        "discipline_rating": 1,
+        "target": 13,
+        "modifier_state": { "edge": false, "hindrance": false },
+        "visibility": "public",
+        "stakes": "Sable identifies the safe inscription before the chamber seals.",
+        "outcome_bands": [
+          {
+            "degree": "Crisis",
+            "consequence": "The seal closes and marks Sable."
+          },
+          {
+            "degree": "Setback",
+            "consequence": "The clue is lost as the seal closes."
+          },
+          {
+            "degree": "Success",
+            "consequence": "Sable identifies the safe inscription."
+          },
+          {
+            "degree": "Triumph",
+            "consequence": "Sable also learns who carved the seal."
+          }
+        ],
+        "action_feasibility": "possible",
+        "spark_eligible": true,
+        "eligible_roller": "seat_sable_001"
+      },
+      "die_face": 10,
+      "roll_mode": "simulated"
+    }
+  },
+  "simulated_check_resolved_event": {
+    "schema_version": 1,
+    "event_id": "event_resolved_001",
+    "transaction_id": "transaction_resolve_001",
+    "campaign_id": "campaign_ember_001",
+    "caused_by_command_id": "command_resolve_001",
+    "transaction_index": 0,
+    "kind": "check_resolved",
+    "payload": {
+      "result": {
+        "schema_version": 1,
+        "actor_id": "actor_sable_001",
+        "die_face": 10,
+        "modifier_breakdown": {
+          "attribute": { "name": "Insight", "value": 2 },
+          "discipline": { "name": "Lore", "value": 1 },
+          "edge": { "active": false, "value": 0 },
+          "hindrance": { "active": false, "value": 0 },
+          "situational_modifier": 0
+        },
+        "final_modifier": 3,
+        "total": 13,
+        "target": 13,
+        "target_delta": 0,
+        "base_degree": "Success",
+        "natural_face_adjustment": 0,
+        "final_degree": "Success",
+        "roll_mode": "simulated"
+      }
+    }
+  },
+  "physical_check_resolved_event": {
+    "schema_version": 1,
+    "event_id": "event_resolved_002",
+    "transaction_id": "transaction_resolve_002",
+    "campaign_id": "campaign_ember_001",
+    "caused_by_command_id": "command_resolve_002",
+    "transaction_index": 0,
+    "kind": "check_resolved",
+    "payload": {
+      "result": {
+        "schema_version": 1,
+        "actor_id": "actor_sable_001",
+        "die_face": 15,
+        "modifier_breakdown": {
+          "attribute": { "name": "Insight", "value": 2 },
+          "discipline": { "name": "Lore", "value": 1 },
+          "edge": { "active": false, "value": 0 },
+          "hindrance": { "active": false, "value": 0 },
+          "situational_modifier": 0
+        },
+        "final_modifier": 3,
+        "total": 18,
+        "target": 13,
+        "target_delta": 5,
+        "base_degree": "Triumph",
+        "natural_face_adjustment": 0,
+        "final_degree": "Triumph",
+        "roll_mode": "physical",
+        "physical_reason": "pivotal_scene_conclusion"
+      }
+    }
+  },
+  "physical_roll_requested_event": {
+    "schema_version": 1,
+    "event_id": "event_physical_001",
+    "transaction_id": "transaction_physical_001",
+    "campaign_id": "campaign_ember_001",
+    "caused_by_command_id": "command_physical_001",
+    "transaction_index": 0,
+    "kind": "physical_roll_requested",
+    "payload": {
+      "disclosure": {
+        "schema_version": 1,
+        "actor_id": "actor_sable_001",
+        "target": 13,
+        "modifier_breakdown": {
+          "attribute": { "name": "Insight", "value": 2 },
+          "discipline": { "name": "Lore", "value": 1 },
+          "edge": { "active": false, "value": 0 },
+          "hindrance": { "active": false, "value": 0 },
+          "situational_modifier": 0
+        },
+        "final_modifier": 3,
+        "outcome_bands": [
+          {
+            "degree": "Crisis",
+            "consequence": "The seal closes and marks Sable."
+          },
+          {
+            "degree": "Setback",
+            "consequence": "The clue is lost as the seal closes."
+          },
+          {
+            "degree": "Success",
+            "consequence": "Sable identifies the safe inscription."
+          },
+          {
+            "degree": "Triumph",
+            "consequence": "Sable also learns who carved the seal."
+          }
+        ],
+        "stakes": "Sable identifies the safe inscription before the chamber seals.",
+        "reason": "pivotal_scene_conclusion",
+        "eligible_roller": "seat_sable_001",
+        "face_to_outcome": [
+          {
+            "face": 1,
+            "degree": "Crisis",
+            "consequence": "The seal closes and marks Sable."
+          },
+          {
+            "face": 2,
+            "degree": "Crisis",
+            "consequence": "The seal closes and marks Sable."
+          },
+          {
+            "face": 3,
+            "degree": "Crisis",
+            "consequence": "The seal closes and marks Sable."
+          },
+          {
+            "face": 4,
+            "degree": "Crisis",
+            "consequence": "The seal closes and marks Sable."
+          },
+          {
+            "face": 5,
+            "degree": "Crisis",
+            "consequence": "The seal closes and marks Sable."
+          },
+          {
+            "face": 6,
+            "degree": "Setback",
+            "consequence": "The clue is lost as the seal closes."
+          },
+          {
+            "face": 7,
+            "degree": "Setback",
+            "consequence": "The clue is lost as the seal closes."
+          },
+          {
+            "face": 8,
+            "degree": "Setback",
+            "consequence": "The clue is lost as the seal closes."
+          },
+          {
+            "face": 9,
+            "degree": "Setback",
+            "consequence": "The clue is lost as the seal closes."
+          },
+          {
+            "face": 10,
+            "degree": "Success",
+            "consequence": "Sable identifies the safe inscription."
+          },
+          {
+            "face": 11,
+            "degree": "Success",
+            "consequence": "Sable identifies the safe inscription."
+          },
+          {
+            "face": 12,
+            "degree": "Success",
+            "consequence": "Sable identifies the safe inscription."
+          },
+          {
+            "face": 13,
+            "degree": "Success",
+            "consequence": "Sable identifies the safe inscription."
+          },
+          {
+            "face": 14,
+            "degree": "Success",
+            "consequence": "Sable identifies the safe inscription."
+          },
+          {
+            "face": 15,
+            "degree": "Triumph",
+            "consequence": "Sable also learns who carved the seal."
+          },
+          {
+            "face": 16,
+            "degree": "Triumph",
+            "consequence": "Sable also learns who carved the seal."
+          },
+          {
+            "face": 17,
+            "degree": "Triumph",
+            "consequence": "Sable also learns who carved the seal."
+          },
+          {
+            "face": 18,
+            "degree": "Triumph",
+            "consequence": "Sable also learns who carved the seal."
+          },
+          {
+            "face": 19,
+            "degree": "Triumph",
+            "consequence": "Sable also learns who carved the seal."
+          },
+          {
+            "face": 20,
+            "degree": "Triumph",
+            "consequence": "Sable also learns who carved the seal."
+          }
+        ]
+      }
+    }
+  },
+  "propose_check_proposal": {
+    "schema_version": 1,
+    "proposal_id": "proposal_check_001",
+    "campaign_id": "campaign_ember_001",
+    "kind": "propose_check",
+    "payload": {
+      "request": {
+        "schema_version": 1,
+        "actor_id": "actor_sable_001",
+        "attribute": "Insight",
+        "attribute_rating": 2,
+        "discipline": "Lore",
+        "discipline_rating": 1,
+        "target": 13,
+        "modifier_state": { "edge": false, "hindrance": false },
+        "visibility": "public",
+        "stakes": "Sable identifies the safe inscription before the chamber seals.",
+        "outcome_bands": [
+          {
+            "degree": "Crisis",
+            "consequence": "The seal closes and marks Sable."
+          },
+          {
+            "degree": "Setback",
+            "consequence": "The clue is lost as the seal closes."
+          },
+          {
+            "degree": "Success",
+            "consequence": "Sable identifies the safe inscription."
+          },
+          {
+            "degree": "Triumph",
+            "consequence": "Sable also learns who carved the seal."
+          }
+        ],
+        "action_feasibility": "possible",
+        "spark_eligible": true,
+        "eligible_roller": "seat_sable_001"
+      }
+    }
+  },
+  "check_preview_projection": {
+    "schema_version": 1,
+    "projection_id": "projection_check_001",
+    "campaign_id": "campaign_ember_001",
+    "revision": 0,
+    "kind": "check_preview",
+    "payload": {
+      "request": {
+        "schema_version": 1,
+        "actor_id": "actor_sable_001",
+        "attribute": "Insight",
+        "attribute_rating": 2,
+        "discipline": "Lore",
+        "discipline_rating": 1,
+        "target": 13,
+        "modifier_state": { "edge": false, "hindrance": false },
+        "visibility": "public",
+        "stakes": "Sable identifies the safe inscription before the chamber seals.",
+        "outcome_bands": [
+          {
+            "degree": "Crisis",
+            "consequence": "The seal closes and marks Sable."
+          },
+          {
+            "degree": "Setback",
+            "consequence": "The clue is lost as the seal closes."
+          },
+          {
+            "degree": "Success",
+            "consequence": "Sable identifies the safe inscription."
+          },
+          {
+            "degree": "Triumph",
+            "consequence": "Sable also learns who carved the seal."
+          }
+        ],
+        "action_feasibility": "possible",
+        "spark_eligible": true,
+        "eligible_roller": "seat_sable_001"
+      }
+    }
+  },
+  "check_preview_transport": {
+    "schema_version": 1,
+    "protocol_version": 1,
+    "message_id": "message_check_001",
+    "room_id": "room_ember_001",
+    "connection_id": "connection_host_001",
+    "seat_id": "seat_sable_001",
+    "seq": 0,
+    "kind": "check_preview",
+    "payload": {
+      "schema_version": 1,
+      "projection_id": "projection_check_001",
+      "campaign_id": "campaign_ember_001",
+      "revision": 0,
+      "kind": "check_preview",
+      "payload": {
+        "request": {
+          "schema_version": 1,
+          "actor_id": "actor_sable_001",
+          "attribute": "Insight",
+          "attribute_rating": 2,
+          "discipline": "Lore",
+          "discipline_rating": 1,
+          "target": 13,
+          "modifier_state": { "edge": false, "hindrance": false },
+          "visibility": "public",
+          "stakes": "Sable identifies the safe inscription before the chamber seals.",
+          "outcome_bands": [
+            {
+              "degree": "Crisis",
+              "consequence": "The seal closes and marks Sable."
+            },
+            {
+              "degree": "Setback",
+              "consequence": "The clue is lost as the seal closes."
+            },
+            {
+              "degree": "Success",
+              "consequence": "Sable identifies the safe inscription."
+            },
+            {
+              "degree": "Triumph",
+              "consequence": "Sable also learns who carved the seal."
+            }
+          ],
+          "action_feasibility": "possible",
+          "spark_eligible": true,
+          "eligible_roller": "seat_sable_001"
+        }
+      }
+    }
+  },
+  "impossible_check_rejection": {
+    "schema_version": 1,
+    "actor_id": "actor_sable_001",
+    "action_feasibility": "impossible",
+    "code": "action_impossible",
+    "reason": "The sealed arch has no opening to cross."
+  },
+  "character_foundation": {
+    "schema_version": 1,
+    "record_kind": "character_foundation",
+    "character_id": "character_sable_001",
+    "actor_id": "actor_sable_001",
+    "display_name": "Sable Reed",
+    "rank": 1,
+    "attributes": [
+      { "attribute": "Force", "rating": 0 },
+      { "attribute": "Finesse", "rating": 1 },
+      { "attribute": "Insight", "rating": 2 },
+      { "attribute": "Presence", "rating": 1 }
+    ],
+    "disciplines": [
+      { "discipline": "Athletics", "rating": 0 },
+      { "discipline": "Subterfuge", "rating": 1 },
+      { "discipline": "Craft", "rating": 0 },
+      { "discipline": "Lore", "rating": 2 },
+      { "discipline": "Vigilance", "rating": 1 },
+      { "discipline": "Influence", "rating": 0 },
+      { "discipline": "Survival", "rating": 1 },
+      { "discipline": "Mysticism", "rating": 0 }
+    ],
+    "drive": "Recover the songs erased from the valley stones.",
+    "bond": "I trust Rowan to notice the danger I overlook.",
+    "significant_gear": [
+      {
+        "slot": 1,
+        "item": {
+          "label": "Slate compass",
+          "note": "Its needle follows old roads."
+        }
+      },
+      { "slot": 2, "item": null },
+      { "slot": 3, "item": null },
+      { "slot": 4, "item": null }
+    ],
+    "signature_technique_concept": "Trace a forgotten route through a place that seems impassable.",
+    "heritage_gift_ref": "content_heritage_echo_001",
+    "upbringing_ref": "content_upbringing_roads_001",
+    "archetype_ref": "content_archetype_wayfinder_001"
+  },
+  "core_term_content_definition": {
+    "schema_version": 1,
+    "content_definition_id": "content_core_attribute_force",
+    "kind": "core_term",
+    "payload": {
+      "category": "attribute",
+      "identifier": "Force",
+      "display_name": "Force",
+      "description": "Direct strength, endurance, and physical commitment."
+    }
+  }
+}

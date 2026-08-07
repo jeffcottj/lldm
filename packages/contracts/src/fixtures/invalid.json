@@ -1,0 +1,80 @@
+[
+  {
+    "name": "unsupported schema version",
+    "base": "resolve_check_command",
+    "operation": "set",
+    "path": ["schema_version"],
+    "value": 2,
+    "expected_path": "/schema_version"
+  },
+  {
+    "name": "unsupported protocol version",
+    "base": "check_preview_transport",
+    "operation": "set",
+    "path": ["protocol_version"],
+    "value": 2,
+    "expected_path": "/protocol_version"
+  },
+  {
+    "name": "unknown command kind",
+    "base": "resolve_check_command",
+    "operation": "set",
+    "path": ["kind"],
+    "value": "invent_state",
+    "expected_path": "/kind"
+  },
+  {
+    "name": "missing command discriminator",
+    "base": "resolve_check_command",
+    "operation": "delete",
+    "path": ["kind"],
+    "expected_path": "/kind"
+  },
+  {
+    "name": "unexpected command property",
+    "base": "resolve_check_command",
+    "operation": "set",
+    "path": ["surprise"],
+    "value": true,
+    "expected_path": "/surprise"
+  },
+  {
+    "name": "malformed opaque ID",
+    "base": "resolve_check_command",
+    "operation": "set",
+    "path": ["command_id"],
+    "value": "bad",
+    "expected_path": "/command_id"
+  },
+  {
+    "name": "invalid standard target",
+    "base": "resolve_check_command",
+    "operation": "set",
+    "path": ["payload", "request", "target"],
+    "value": 12,
+    "expected_path": "/payload/request/target"
+  },
+  {
+    "name": "invalid die face",
+    "base": "resolve_check_command",
+    "operation": "set",
+    "path": ["payload", "die_face"],
+    "value": 21,
+    "expected_path": "/payload/die_face"
+  },
+  {
+    "name": "incomplete physical disclosure",
+    "base": "physical_roll_requested_event",
+    "operation": "delete",
+    "path": ["payload", "disclosure", "eligible_roller"],
+    "expected_path": "/payload/disclosure/eligible_roller"
+  },
+  {
+    "name": "invalid character allocation",
+    "base": "character_foundation",
+    "operation": "set",
+    "path": ["attributes", 0, "rating"],
+    "value": 1,
+    "expected_path": "$.attributes"
+  }
+]
