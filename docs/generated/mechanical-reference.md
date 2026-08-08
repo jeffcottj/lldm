@@ -199,7 +199,7 @@ A round condition expires at the next round transition, a scene condition at the
 | Mechanical state schema | 1 |
 | Canonical JSON | 1 |
 | Simulated randomness | `hmac_sha256_v1` |
-| SQLite migration | 1 (`phase_1_event_store`, checksum `sha256:3e2d71c32343c68e1c57e231c2c3358f8754cd617b7d24404bb2741fef192d00`) |
+| SQLite migration | 2 (`phase_2_room_stream`, checksum `sha256:38b882c242fb41685ef4004239d9a3e27211f81573a4a44f5031ddb06beafb27`) |
 
 A command ID permanently binds its validated canonical JSON and hash. An exact retry returns the already stored transaction without consulting the clock, content catalog, engine, random source, projector, snapshot policy, entropy, or ID allocator. Reusing either a command ID or transaction ID for different canonical command bytes is an identity collision and appends nothing. A structurally valid stale or illegal command instead commits one typed rejection event with identical pre-state and post-state hashes.
 

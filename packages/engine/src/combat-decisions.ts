@@ -113,7 +113,16 @@ function participantAlive(
   state: GameState,
   participant: CombatParticipant,
 ): boolean {
-  if (participant.side === "enemy") return participant.guard.current > 0;
+  if (participant.side === "enemy") {
+    const combat = state.combat;
+    const reinforcementReady =
+      participant.reinforcement_trigger === undefined ||
+      (participant.reinforcement_trigger === "round_2" &&
+        (combat?.round ?? 0) >= 2) ||
+      (participant.reinforcement_trigger === "objective_progress_2" &&
+        (combat?.objectives.some(({ progress }) => progress >= 2) ?? false));
+    return reinforcementReady && participant.guard.current > 0;
+  }
   const character = state.party.characters.find(
     ({ foundation }) => foundation.actor_id === participant.actor_id,
   );
@@ -644,11 +653,14 @@ export function decideStartCombat(
     return reject("Combat must begin as an unspent hero-first round.");
   }
   for (const participant of combat.participants) {
+    const pendingReinforcement =
+      participant.side === "enemy" &&
+      participant.reinforcement_trigger !== undefined;
     if (
       !participant.action_available ||
       !participant.maneuver_available ||
       !participant.reaction_available ||
-      participant.activation_spent
+      participant.activation_spent !== pendingReinforcement
     ) {
       return reject("Every combat participant must begin with fresh slots.");
     }
@@ -815,6 +827,34 @@ export function decideSelectEnemyFallback(
           combat_id: combat.combat_id,
           candidate: selected,
           tie_break: tieBreak,
+        },
+      },
+    ],
+  };
+}
+
+export function decideWithdrawFromCombat(
+  input: CommandDecisionInput & {
+    readonly command: Extract<GameCommand, { kind: "withdraw_from_combat" }>;
+  },
+): CommandDecision {
+  const combat = combatFor(input.state, input.command.payload.combat_id);
+  if (isRejection(combat)) return combat;
+  if (
+    combat.reaction_window !== null ||
+    combat.pending_action_check_id !== null ||
+    combat.pending_death_check_id !== null
+  ) {
+    return reject("Combat cannot be withdrawn while a resolution is pending.");
+  }
+  return {
+    accepted: true,
+    events: [
+      {
+        kind: "combat_resolved",
+        payload: {
+          combat_id: combat.combat_id,
+          outcome: "heroes_withdrew",
         },
       },
     ],

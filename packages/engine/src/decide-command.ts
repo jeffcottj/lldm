@@ -41,6 +41,7 @@ import {
   decideResolveReaction,
   decideSelectEnemyFallback,
   decideStartCombat,
+  decideWithdrawFromCombat,
   eventsForDeathTestResult,
   eventsForPendingCombatResolution,
 } from "./combat-decisions.js";
@@ -513,6 +514,42 @@ function decideRecoverResource(
           previous: current,
           current: transition.value,
           reason: `Recovery from ${source.content_definition_id}@${source.definition_revision}.`,
+        },
+      },
+    ],
+  };
+}
+
+function decideProvisionStartingSupply(
+  input: CommandDecisionInput & {
+    readonly command: Extract<
+      GameCommand,
+      { kind: "provision_starting_supply" }
+    >;
+  },
+): CommandDecision {
+  const partySize = input.state.party.characters.length;
+  if (
+    partySize < 3 ||
+    partySize > 5 ||
+    input.state.party.supply !== 0 ||
+    input.state.party.supply_maximum !== partySize + 2
+  ) {
+    return reject(
+      "Starting Supply requires one fully materialized three-to-five-hero party and can be provisioned only once.",
+    );
+  }
+  return {
+    accepted: true,
+    events: [
+      {
+        kind: "resource_changed",
+        payload: {
+          owner: { scope: "party" },
+          resource: "supply",
+          previous: 0,
+          current: partySize,
+          reason: "Starting Supply for the materialized guided party.",
         },
       },
     ],
@@ -1057,6 +1094,11 @@ export function decideCommand(input: CommandDecisionInput): CommandDecision {
       return decideSubmitDieResult({ ...input, command: input.command });
     case "materialize_character":
       return decideMaterializeCharacter({ ...input, command: input.command });
+    case "provision_starting_supply":
+      return decideProvisionStartingSupply({
+        ...input,
+        command: input.command,
+      });
     case "spend_resource":
       return decideSpendResource({ ...input, command: input.command });
     case "recover_resource":
@@ -1077,6 +1119,8 @@ export function decideCommand(input: CommandDecisionInput): CommandDecision {
       return decideExecuteCombatAction({ ...input, command: input.command });
     case "select_enemy_fallback":
       return decideSelectEnemyFallback({ ...input, command: input.command });
+    case "withdraw_from_combat":
+      return decideWithdrawFromCombat({ ...input, command: input.command });
     case "open_reaction_window":
       return decideOpenReactionWindow({ ...input, command: input.command });
     case "resolve_reaction":

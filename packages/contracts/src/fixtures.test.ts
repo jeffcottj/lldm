@@ -23,7 +23,8 @@ import {
   CommandAcceptedEventSchema,
   CommandRejectedEventSchema,
 } from "./audit-events.js";
-import { ClientCommandSchema } from "./commands.js";
+import { ClientCommandSchema } from "./client-commands.js";
+import { GameCommandSchema } from "./commands.js";
 import { ContentDefinitionSchema } from "./content-definitions.js";
 import { CoreTermContentDefinitionSchema } from "./core-content.js";
 import { GameEventSchema } from "./events.js";
@@ -201,7 +202,7 @@ describe("canonical JSON fixtures", () => {
   });
 
   it.each([
-    [ClientCommandSchema, validFixturesJson.resolve_check_command],
+    [GameCommandSchema, validFixturesJson.resolve_check_command],
     [GameEventSchema, validFixturesJson.simulated_check_resolved_event],
     [BoundedProposalSchema, validFixturesJson.propose_check_proposal],
     [ProjectionSchema, validFixturesJson.check_preview_projection],
@@ -217,6 +218,26 @@ describe("canonical JSON fixtures", () => {
       expect(validateValue(schema, unknownVariant).success).toBe(false);
     },
   );
+
+  it("keeps untrusted client commands distinct from game commands", () => {
+    expect(
+      validateValue(
+        ClientCommandSchema,
+        validFixturesJson.resolve_check_command,
+      ).success,
+    ).toBe(false);
+    expect(
+      validateValue(GameCommandSchema, {
+        schema_version: 1,
+        protocol_version: 1,
+        client_command_id: "client_command_fixture_001",
+        room_id: "room_fixture_001",
+        connection_id: "connection_fixture_001",
+        expected_view_revision: 0,
+        intent: { kind: "start_run", payload: {} },
+      }).success,
+    ).toBe(false);
+  });
 
   for (const fixture of invalidFixtures) {
     it(`rejects ${fixture.name} for the intended path`, () => {

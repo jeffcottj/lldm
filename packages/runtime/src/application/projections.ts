@@ -1,6 +1,6 @@
 import {
-  canonicalJson,
   type CampaignId,
+  canonicalJson,
   type LegalActionId,
   ProjectionSchema,
   SCHEMA_VERSION,
@@ -9,6 +9,7 @@ import {
 } from "@lldm/contracts";
 import {
   enumerateCombatActions,
+  enumerateCombatReactions,
   enumerateLegalCharacterActions,
 } from "@lldm/engine";
 import type { ProjectionPort, RuntimeProjectionDraft } from "../ports/index.js";
@@ -45,6 +46,25 @@ function draft(input: {
 
 export const phase1ProjectionPort: ProjectionPort = {
   project({ state, revision, catalog, legal_action_id_for }) {
+    const publicCombat =
+      state.combat === null
+        ? null
+        : {
+            ...state.combat,
+            participants: state.combat.participants.filter(
+              (participant) =>
+                participant.side === "hero" ||
+                participant.reinforcement_trigger === undefined ||
+                (participant.reinforcement_trigger === "round_2" &&
+                  state.combat !== null &&
+                  state.combat.round >= 2) ||
+                (participant.reinforcement_trigger === "objective_progress_2" &&
+                  state.combat !== null &&
+                  state.combat.objectives.some(
+                    ({ progress }) => progress >= 2,
+                  )),
+            ),
+          };
     const publicProjection = draft({
       audience_kind: "public",
       audience_key: "public",
@@ -73,7 +93,7 @@ export const phase1ProjectionPort: ProjectionPort = {
               disclosure;
             return publicDisclosure;
           }),
-          combat: state.combat,
+          combat: publicCombat,
           challenges: state.challenges,
           social_states: state.social_states.map((social) => ({
             npc_actor_id: social.npc_actor_id,
@@ -117,12 +137,22 @@ export const phase1ProjectionPort: ProjectionPort = {
       const legalCombatActions =
         character === undefined
           ? []
-          : enumerateCombatActions({
-              state,
-              catalog,
-              actor_id: character.foundation.actor_id,
-              legal_action_id_for,
-            });
+          : state.combat?.reaction_window?.eligible_actor_ids[0] ===
+              character.foundation.actor_id
+            ? enumerateCombatReactions({
+                state,
+                catalog,
+                actor_id: character.foundation.actor_id,
+                legal_action_id_for,
+              })
+            : state.combat?.active_actor_id === character.foundation.actor_id
+              ? enumerateCombatActions({
+                  state,
+                  catalog,
+                  actor_id: character.foundation.actor_id,
+                  legal_action_id_for,
+                })
+              : [];
       return draft({
         audience_kind: "seat_private",
         audience_key: audienceKey,

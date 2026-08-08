@@ -6,6 +6,12 @@ import {
   PlayableCharacterStateSchema,
   PROTOCOL_VERSION,
   RANDOMNESS_ALGORITHM_VERSION,
+  RELAY_APPLIANCE_FRAMES_PER_MINUTE,
+  RELAY_COMMANDS_PER_MINUTE,
+  RELAY_MAX_CONNECTIONS,
+  RELAY_MAX_FRAME_BYTES,
+  RELAY_MAX_ROOM_LIFETIME_SECONDS,
+  ROOM_STATE_SCHEMA_VERSION,
   SCHEMA_VERSION,
   STANDARD_TARGETS,
   STATE_CANONICALIZATION_VERSION,
@@ -27,6 +33,11 @@ import {
   PHASE_1_SIGNATURE_TECHNIQUES,
   PHASE_1_STARTER_LOADOUTS,
   PHASE_1_UPBRINGINGS,
+  PHASE_2_CONTENT_MANIFEST,
+  PHASE_2_DEFINITIONS,
+  PHASE_2_ENCOUNTER_VARIANTS,
+  PHASE_2_PRESENTATION_MANIFEST,
+  PHASE_2_STARTER_LOADOUTS,
   TARGET_METADATA,
 } from "@lldm/content";
 import {
@@ -414,6 +425,94 @@ ${deferred}
 `;
 }
 
+export function renderPhase2RoomReference(): string {
+  const migration = SQLITE_MIGRATIONS.find(({ version }) => version === 2);
+  if (migration === undefined)
+    throw new Error("Phase 2 room reference requires migration 2.");
+  const starterRows = PHASE_2_STARTER_LOADOUTS.map(
+    ({ starter_loadout_id, foundation }) => [
+      foundation.display_name,
+      starter_loadout_id,
+      foundation.archetype_ref,
+      foundation.signature_technique_concept,
+    ],
+  );
+  const variantRows = PHASE_2_ENCOUNTER_VARIANTS.map((variant) => {
+    const objective = PHASE_2_DEFINITIONS.find(
+      ({ content_definition_id, definition_revision }) =>
+        content_definition_id ===
+          variant.objective_definition.content_definition_id &&
+        definition_revision ===
+          variant.objective_definition.definition_revision,
+    );
+    if (objective?.kind !== "objective")
+      throw new Error("Phase 2 variant objective definition is missing.");
+    return [
+      String(variant.party_size),
+      variant.variant_key,
+      String(variant.enemies.length),
+      variant.reinforcement_trigger,
+      `${objective.content_definition_id} (threshold ${objective.payload.threshold})`,
+    ];
+  });
+  const beatRows = PHASE_2_PRESENTATION_MANIFEST.beats.map((beat) => [
+    beat.beat_id,
+    beat.kind,
+    beat.operation.kind,
+    beat.visibility,
+    beat.terminal_conclusion ?? "—",
+  ]);
+
+  return `${GENERATED_WARNING}
+
+# LLDM Phase 2 Room and Guided Slice Reference
+
+## Versioned boundaries
+
+| Boundary | Current value |
+| --- | --- |
+| Serialized schema | ${SCHEMA_VERSION} |
+| Transport protocol | ${PROTOCOL_VERSION} |
+| Mechanical state | ${STATE_SCHEMA_VERSION} |
+| Room state | ${ROOM_STATE_SCHEMA_VERSION} |
+| SQLite migration | ${migration.version} (\`${migration.name}\`, checksum \`${migration.checksum}\`) |
+| Mechanical manifest | \`${PHASE_2_CONTENT_MANIFEST.manifest_hash}\` |
+| Presentation manifest | \`${PHASE_2_PRESENTATION_MANIFEST.presentation_manifest_hash}\` |
+
+Untrusted \`ClientCommand\`, durable \`RoomCommand\`, and internal \`GameCommand\` are distinct serialized unions. The room stream owns people, seats, guided presentation, recovery, and workflow linkage; the campaign stream remains the sole mechanical authority. Both streams use command identity binding, canonical hashes, atomic transaction rows, and deterministic replay.
+
+Client delivery is limited to \`public_tv\`, \`participant_private\`, and \`player_host_operational\`. The Phase 1 \`host_control\` projection and Phase 2 \`server_internal\` combined view are never members of the client delivery union. A missing cursor, revision gap, seat change, or authority change requires a filtered snapshot; otherwise retained deltas advance exactly one view revision.
+
+## Relay and transport limits
+
+| Limit | Value |
+| --- | --- |
+| Maximum frame | ${RELAY_MAX_FRAME_BYTES} bytes |
+| Connections per room | ${RELAY_MAX_CONNECTIONS} |
+| Player frames per minute | ${RELAY_COMMANDS_PER_MINUTE} |
+| Appliance fanout frames per minute | ${RELAY_APPLIANCE_FRAMES_PER_MINUTE} |
+| Room lifetime | ${RELAY_MAX_ROOM_LIFETIME_SECONDS} seconds |
+
+The relay stores expiring authentication, routing, sequence, acknowledgement, rate, and alarm metadata only. It does not persist application-frame payloads. Reconnect rotates \`ConnectionId\` while preserving approved \`ParticipantId\`; reconnect credentials are browser-local IndexedDB data.
+
+## Six fixed starter heroes
+
+${markdownTable(["Hero", "Starter ID", "Archetype", "Signature permission"], starterRows)}
+
+## Authored encounter variants
+
+${markdownTable(["Party", "Variant", "Enemies", "Reinforcement", "Objective definition"], variantRows)}
+
+Enemy definitions and actor statistics remain pinned across party sizes. Variants change authored roster, placement, reinforcement, and objective pressure only.
+
+## Guided Floodgate graph
+
+${markdownTable(["Beat", "Kind", "Operation", "Visibility", "Conclusion"], beatRows)}
+
+The presentation manifest contains deterministic text and layout metadata only and is never supplied to the rules engine. Mechanical beat operations are derived as bounded, validated game commands and advance presentation only from committed outcome bands or combat outcomes. The final Floodgate lock is a mandatory disclosed physical d20; optional Spark can convert the earlier eligible check to a disclosed physical roll.
+`;
+}
+
 const outputs = [
   {
     path: "docs/generated/mechanical-reference.md",
@@ -426,6 +525,10 @@ const outputs = [
   {
     path: "docs/generated/playable-content-reference.md",
     contents: renderPlayableContentReference(),
+  },
+  {
+    path: "docs/generated/phase-2-room-reference.md",
+    contents: renderPhase2RoomReference(),
   },
 ] as const;
 

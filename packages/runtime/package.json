@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "tsc --build",
-    "test": "vitest run",
+    "test": "vitest --config ../../vitest.config.ts run packages/runtime/src",
     "typecheck": "tsc --build"
   },
   "dependencies": {

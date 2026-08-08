@@ -7,9 +7,9 @@ export default defineConfig({
     environment: "node",
     fileParallelism: false,
     include: [
-      "apps/**/*.test.ts",
-      "packages/**/*.test.ts",
-      "test/**/*.test.ts",
+      "apps/**/*.test.{ts,tsx}",
+      "packages/**/*.test.{ts,tsx}",
+      "test/**/*.test.{ts,tsx}",
     ],
     setupFiles: ["./test/no-network.ts"],
     sequence: {

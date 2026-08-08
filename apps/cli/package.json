@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc --build",
     "lldm": "tsx src/main.ts",
-    "test": "vitest run",
+    "test": "vitest --config ../../vitest.config.ts run apps/cli/src",
     "typecheck": "tsc --build"
   },
   "dependencies": {

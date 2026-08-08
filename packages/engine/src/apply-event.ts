@@ -42,7 +42,16 @@ function combatParticipantAlive(
   state: GameState,
   participant: NonNullable<GameState["combat"]>["participants"][number],
 ): boolean {
-  if (participant.side === "enemy") return participant.guard.current > 0;
+  if (participant.side === "enemy") {
+    const combat = state.combat;
+    const reinforcementReady =
+      participant.reinforcement_trigger === undefined ||
+      (participant.reinforcement_trigger === "round_2" &&
+        (combat?.round ?? 0) >= 2) ||
+      (participant.reinforcement_trigger === "objective_progress_2" &&
+        (combat?.objectives.some(({ progress }) => progress >= 2) ?? false));
+    return reinforcementReady && participant.guard.current > 0;
+  }
   const character = characterByActorId(state, participant.actor_id);
   return (
     character !== undefined &&
@@ -739,7 +748,11 @@ export function applyGameEvent(
             action_available: true,
             maneuver_available: true,
             reaction_available: true,
-            activation_spent: false,
+            activation_spent:
+              participant.side === "enemy" &&
+              participant.reinforcement_trigger === "objective_progress_2" &&
+              (next.combat?.objectives.every(({ progress }) => progress < 2) ??
+                false),
           }),
         );
         next.combat.reaction_window = null;
@@ -793,6 +806,15 @@ export function applyGameEvent(
         }
         objective.progress = event.payload.current;
         objective.status = event.payload.status;
+        if (event.payload.current >= 2 && next.combat !== null) {
+          for (const participant of next.combat.participants) {
+            if (
+              participant.side === "enemy" &&
+              participant.reinforcement_trigger === "objective_progress_2"
+            )
+              participant.activation_spent = false;
+          }
+        }
         break;
       }
       case "death_test_aid_applied": {

@@ -1,6 +1,25 @@
-import type { Static, TSchema } from "@sinclair/typebox";
+import { FormatRegistry, type Static, type TSchema } from "@sinclair/typebox";
 import type { ValueError } from "@sinclair/typebox/errors";
 import { Value } from "@sinclair/typebox/value";
+
+if (!FormatRegistry.Has("date-time")) {
+  FormatRegistry.Set(
+    "date-time",
+    (value) =>
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(value) &&
+      Number.isFinite(Date.parse(value)),
+  );
+}
+if (!FormatRegistry.Has("uri")) {
+  FormatRegistry.Set("uri", (value) => {
+    try {
+      const parsed = new URL(value);
+      return parsed.protocol.length > 1;
+    } catch {
+      return false;
+    }
+  });
+}
 
 export interface ValidationIssue {
   readonly path: string;

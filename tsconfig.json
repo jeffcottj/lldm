@@ -14,7 +14,11 @@
     { "path": "packages/engine" },
     { "path": "packages/content" },
     { "path": "packages/runtime" },
-    { "path": "apps/cli" }
+    { "path": "packages/providers" },
+    { "path": "apps/cli" },
+    { "path": "apps/host" },
+    { "path": "apps/relay" },
+    { "path": "apps/web" }
   ],
   "extends": "./tsconfig.base.json",
   "compilerOptions": {

@@ -1,5 +1,6 @@
 export * from "./application/index.js";
 export * from "./hashing/state-hash.js";
+export * from "./hashing/room-state-hash.js";
 export * from "./ports/index.js";
 export * from "./randomness/hmac-sha256-v1.js";
 export * from "./sqlite/index.js";

@@ -423,6 +423,30 @@ function combat(twoHeroes = false): NonNullable<GameState["combat"]> {
   };
 }
 
+function combatWithReinforcement(
+  trigger: "round_2" | "objective_progress_2",
+): NonNullable<GameState["combat"]> {
+  const result = structuredClone(combat());
+  result.participants.push({
+    actor_id: "actor_cinder_reinforcement_001" as never,
+    side: "enemy",
+    kind: "boss",
+    zone_id: "zone_gallery_001" as never,
+    action_available: true,
+    maneuver_available: true,
+    reaction_available: true,
+    activation_spent: true,
+    reinforcement_trigger: trigger,
+    definition: {
+      content_definition_id: "content_enemy_cinder_warden_001" as never,
+      definition_revision: 1,
+    },
+    guard: { current: 6, maximum: 6 },
+    armor: 1,
+  });
+  return result;
+}
+
 function state(twoHeroes = false): GameState {
   const result = createEmptyCampaignState(campaignId, manifestHash);
   result.party.characters = twoHeroes
@@ -559,6 +583,33 @@ describe("combat start, zones, and action resolution", () => {
         ),
       }),
     ).toMatchObject({ accepted: false });
+  });
+
+  it("starts typed reinforcements spent and keeps them unavailable until their trigger", () => {
+    const initial = state();
+    for (const trigger of ["round_2", "objective_progress_2"] as const) {
+      const reinforcement = combatWithReinforcement(trigger);
+      const decision = accepted(
+        decideCommand({
+          state: initial,
+          catalog,
+          command: basicCommand(
+            "start_combat",
+            { combat: reinforcement },
+            `start_reinforcement_${trigger}`,
+          ),
+        }),
+      );
+      const started = applyAll(initial, decision.events);
+      expect(
+        enumerateCombatActions({
+          state: started,
+          catalog,
+          actor_id: "actor_cinder_reinforcement_001" as never,
+          legal_action_id_for: allocator(),
+        }),
+      ).toEqual([]);
+    }
   });
 
   it("derives graph distances, ranges, and every legal target", () => {
@@ -759,6 +810,79 @@ describe("combat start, zones, and action resolution", () => {
 });
 
 describe("alternation, enemy fallback, and reactions", () => {
+  it("admits round and objective reinforcements through replayed trigger events", () => {
+    const makeState = (trigger: "round_2" | "objective_progress_2") => {
+      const current = structuredClone(state());
+      current.combat = combatWithReinforcement(trigger);
+      const validated = validateGameState(current);
+      if (!validated.success)
+        throw new Error("Reinforcement combat state is invalid.");
+      return validated.value;
+    };
+    const roundState = makeState("round_2");
+    if (roundState.combat === null)
+      throw new Error("Round reinforcement combat is missing.");
+    for (const participant of roundState.combat.participants) {
+      if (
+        participant.side === "hero" ||
+        participant.reinforcement_trigger === undefined
+      )
+        participant.activation_spent = true;
+    }
+    const afterRound = applyAll(roundState, [
+      {
+        kind: "round_advanced",
+        payload: {
+          combat_id: roundState.combat.combat_id,
+          previous_round: 1,
+          current_round: 2,
+        },
+      },
+    ]);
+    expect(
+      afterRound.combat?.participants.find(
+        ({ actor_id }) => actor_id === "actor_cinder_reinforcement_001",
+      )?.activation_spent,
+    ).toBe(false);
+    expect(
+      enumerateCombatActions({
+        state: afterRound,
+        catalog,
+        actor_id: "actor_cinder_reinforcement_001" as never,
+        legal_action_id_for: allocator(),
+      }).length,
+    ).toBeGreaterThan(0);
+
+    const objectiveState = makeState("objective_progress_2");
+    if (objectiveState.combat === null)
+      throw new Error("Objective reinforcement combat is missing.");
+    const afterObjective = applyAll(objectiveState, [
+      {
+        kind: "objective_advanced",
+        payload: {
+          combat_id: objectiveState.combat.combat_id,
+          objective_id: "objective_glass_beacon_001" as never,
+          previous: 0,
+          current: 2,
+          status: "active",
+        },
+      },
+    ]);
+    expect(
+      afterObjective.combat?.participants.find(
+        ({ actor_id }) => actor_id === "actor_cinder_reinforcement_001",
+      )?.activation_spent,
+    ).toBe(false);
+    expect(
+      enumerateCombatActions({
+        state: afterObjective,
+        catalog,
+        actor_id: "actor_cinder_reinforcement_001" as never,
+        legal_action_id_for: allocator(),
+      }).length,
+    ).toBeGreaterThan(0);
+  });
+
   it("advances after every living actor is spent even when a defeated enemy is unspent", () => {
     const current = structuredClone(stateInCombat());
     const hero = current.combat?.participants.find(

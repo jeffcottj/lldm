@@ -172,6 +172,12 @@ export const CombatParticipantSchema = Type.Union([
     ...CombatParticipantCommon,
     side: Type.Literal("enemy"),
     kind: Type.Union([Type.Literal("squad"), Type.Literal("boss")]),
+    reinforcement_trigger: Type.Optional(
+      Type.Union([
+        Type.Literal("round_2"),
+        Type.Literal("objective_progress_2"),
+      ]),
+    ),
     definition: ResolvedContentReferenceSchema,
     guard: strictObject({
       current: Type.Integer({ minimum: 0 }),
@@ -299,6 +305,19 @@ export function validateCombatState(
         path: `$.participants[${index}].guard.current`,
         code: "combat.enemy_guard_overflow",
         message: "Enemy Guard cannot exceed its resolved maximum.",
+      });
+    }
+    if (
+      participant.side === "enemy" &&
+      participant.reinforcement_trigger !== undefined &&
+      combat.round === 1 &&
+      combat.objectives.every(({ progress }) => progress < 2) &&
+      !participant.activation_spent
+    ) {
+      issues.push({
+        path: `$.participants[${index}].activation_spent`,
+        code: "combat.reinforcement_entered_early",
+        message: "A reinforcement must remain spent until its trigger.",
       });
     }
   });
@@ -483,6 +502,10 @@ export const ExecuteCombatActionCommandSchema = commandEnvelope(
 export const SelectEnemyFallbackCommandSchema = commandEnvelope(
   Type.Literal("select_enemy_fallback"),
   strictObject({ ...CombatCommandCommon, actor_id: ActorIdSchema }),
+);
+export const WithdrawFromCombatCommandSchema = commandEnvelope(
+  Type.Literal("withdraw_from_combat"),
+  strictObject({ ...CombatCommandCommon }),
 );
 export const OpenReactionWindowCommandSchema = commandEnvelope(
   Type.Literal("open_reaction_window"),

@@ -1,6 +1,19 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  // Runnable Worker code, bindings, routes, and deploy targets begin in Phase 2.
-  "name": "lldm-relay-placeholder",
-  "compatibility_date": "2026-08-07"
+  "name": "lldm-relay",
+  "main": "apps/relay/src/index.ts",
+  "compatibility_date": "2026-08-07",
+  "assets": {
+    "directory": "apps/web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "DurableRoom" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DurableRoom"] }],
+  "vars": {
+    "ALLOWED_ORIGINS": "https://relay.invalid"
+  }
 }

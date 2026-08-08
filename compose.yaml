@@ -1,3 +1,44 @@
-# Runnable host and relay services begin in Phase 2.
 name: lldm
-services: {}
+services:
+  host:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: appliance
+    image: lldm-appliance:phase2
+    init: true
+    restart: unless-stopped
+    read_only: true
+    ports:
+      - "127.0.0.1:${LLDM_PORT:-3210}:3210"
+    environment:
+      LLDM_BIND: "0.0.0.0"
+      LLDM_CONTAINER_LOOPBACK_PUBLISH: "1"
+      LLDM_PORT: "3210"
+      LLDM_DATA_PATH: /var/lib/lldm
+      LLDM_DATABASE_PATH: /var/lib/lldm/lldm.sqlite
+      LLDM_WEB_ASSETS_PATH: /app/apps/web/dist
+      LLDM_PUBLIC_PWA_URL: ${LLDM_PUBLIC_PWA_URL:-https://relay.invalid}
+      LLDM_RELAY_URL: ${LLDM_RELAY_URL:-https://relay.invalid}
+      LLDM_RELAY_CREDENTIAL_FILE: /run/secrets/relay_create_credential
+      LLDM_ROOM_LIFETIME_SECONDS: ${LLDM_ROOM_LIFETIME_SECONDS:-86400}
+      LLDM_REHEARSAL_ENABLED: ${LLDM_REHEARSAL_ENABLED:-1}
+    volumes:
+      - lldm-data:/var/lib/lldm
+    secrets:
+      - relay_create_credential
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3210/readyz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+volumes:
+  lldm-data:
+
+secrets:
+  relay_create_credential:
+    file: ${LLDM_RELAY_CREDENTIAL_SOURCE_FILE:-/etc/lldm/relay_create_credential}

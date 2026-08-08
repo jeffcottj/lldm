@@ -111,6 +111,132 @@ CREATE INDEX snapshots_by_campaign_revision ON snapshots(campaign_id, revision D
 PRAGMA user_version = 1;
 `.trim();
 
+const MIGRATION_2_SQL = `
+CREATE TABLE room_sessions (
+  room_session_id TEXT PRIMARY KEY,
+  schema_version INTEGER NOT NULL CHECK (schema_version = 1),
+  room_state_schema_version INTEGER NOT NULL CHECK (room_state_schema_version = 1),
+  current_relay_room_id TEXT,
+  campaign_id TEXT NOT NULL UNIQUE REFERENCES campaigns(campaign_id) ON DELETE RESTRICT,
+  mechanical_manifest_hash TEXT NOT NULL CHECK (mechanical_manifest_hash GLOB 'sha256:[0-9a-f]*' AND length(mechanical_manifest_hash) = 71),
+  presentation_manifest_hash TEXT NOT NULL CHECK (presentation_manifest_hash GLOB 'sha256:[0-9a-f]*' AND length(presentation_manifest_hash) = 71),
+  current_room_revision INTEGER NOT NULL DEFAULT 0 CHECK (current_room_revision >= 0),
+  current_view_revision INTEGER NOT NULL DEFAULT 0 CHECK (current_view_revision >= 0),
+  current_mechanical_revision INTEGER NOT NULL DEFAULT 0 CHECK (current_mechanical_revision >= 0),
+  room_state_json TEXT NOT NULL CHECK (json_valid(room_state_json)),
+  room_state_hash TEXT NOT NULL CHECK (room_state_hash GLOB 'sha256:[0-9a-f]*' AND length(room_state_hash) = 71),
+  status TEXT NOT NULL CHECK (status IN ('lobby', 'active', 'suspended', 'completed')),
+  mode TEXT NOT NULL CHECK (mode IN ('normal', 'rehearsal')),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  relay_expires_at TEXT
+) STRICT;
+
+CREATE TABLE room_commands (
+  room_command_id TEXT PRIMARY KEY,
+  room_session_id TEXT NOT NULL REFERENCES room_sessions(room_session_id) ON DELETE RESTRICT,
+  client_command_id TEXT UNIQUE,
+  room_transaction_id TEXT NOT NULL UNIQUE,
+  participant_id TEXT,
+  seat_id TEXT,
+  expected_room_revision INTEGER NOT NULL CHECK (expected_room_revision >= 0),
+  expected_view_revision INTEGER NOT NULL CHECK (expected_view_revision >= 0),
+  kind TEXT NOT NULL,
+  canonical_json TEXT NOT NULL CHECK (json_valid(canonical_json)),
+  command_hash TEXT NOT NULL CHECK (command_hash GLOB 'sha256:[0-9a-f]*' AND length(command_hash) = 71),
+  outcome TEXT NOT NULL CHECK (outcome IN ('accepted', 'rejected')),
+  result_json TEXT NOT NULL CHECK (json_valid(result_json)),
+  UNIQUE (room_session_id, room_command_id),
+  UNIQUE (room_session_id, client_command_id)
+) STRICT;
+
+CREATE TABLE room_transactions (
+  room_transaction_id TEXT PRIMARY KEY,
+  room_session_id TEXT NOT NULL REFERENCES room_sessions(room_session_id) ON DELETE RESTRICT,
+  room_command_id TEXT NOT NULL UNIQUE,
+  first_room_revision INTEGER NOT NULL CHECK (first_room_revision > 0),
+  last_room_revision INTEGER NOT NULL CHECK (last_room_revision >= first_room_revision),
+  event_count INTEGER NOT NULL CHECK (event_count > 0 AND event_count = last_room_revision - first_room_revision + 1),
+  outcome TEXT NOT NULL CHECK (outcome IN ('accepted', 'rejected')),
+  pre_room_state_hash TEXT NOT NULL CHECK (pre_room_state_hash GLOB 'sha256:[0-9a-f]*' AND length(pre_room_state_hash) = 71),
+  post_room_state_hash TEXT NOT NULL CHECK (post_room_state_hash GLOB 'sha256:[0-9a-f]*' AND length(post_room_state_hash) = 71),
+  linked_game_transaction_id TEXT REFERENCES transactions(transaction_id) ON DELETE RESTRICT,
+  committed_at TEXT NOT NULL,
+  UNIQUE (room_session_id, first_room_revision),
+  UNIQUE (room_session_id, last_room_revision),
+  UNIQUE (room_session_id, room_transaction_id),
+  FOREIGN KEY (room_session_id, room_command_id) REFERENCES room_commands(room_session_id, room_command_id) ON DELETE RESTRICT
+) STRICT;
+
+CREATE TABLE room_events (
+  room_session_id TEXT NOT NULL REFERENCES room_sessions(room_session_id) ON DELETE RESTRICT,
+  room_revision INTEGER NOT NULL CHECK (room_revision > 0),
+  room_event_id TEXT NOT NULL UNIQUE,
+  room_transaction_id TEXT NOT NULL,
+  transaction_index INTEGER NOT NULL CHECK (transaction_index >= 0),
+  caused_by_room_command_id TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  visibility TEXT NOT NULL CHECK (visibility IN ('public', 'participant_private', 'player_host_operational', 'server_internal')),
+  canonical_json TEXT NOT NULL CHECK (json_valid(canonical_json)),
+  PRIMARY KEY (room_session_id, room_revision),
+  UNIQUE (room_transaction_id, transaction_index),
+  FOREIGN KEY (room_session_id, room_transaction_id) REFERENCES room_transactions(room_session_id, room_transaction_id) ON DELETE RESTRICT,
+  FOREIGN KEY (room_session_id, caused_by_room_command_id) REFERENCES room_commands(room_session_id, room_command_id) ON DELETE RESTRICT
+) STRICT;
+
+CREATE TABLE mechanical_workflows (
+  workflow_id TEXT PRIMARY KEY,
+  room_session_id TEXT NOT NULL REFERENCES room_sessions(room_session_id) ON DELETE RESTRICT,
+  client_command_id TEXT NOT NULL UNIQUE,
+  room_command_id TEXT NOT NULL UNIQUE REFERENCES room_commands(room_command_id) ON DELETE RESTRICT,
+  game_command_id TEXT NOT NULL UNIQUE,
+  game_transaction_id TEXT NOT NULL UNIQUE,
+  expected_mechanical_revision INTEGER NOT NULL CHECK (expected_mechanical_revision >= 0),
+  derived_game_command_json TEXT NOT NULL CHECK (json_valid(derived_game_command_json)),
+  status TEXT NOT NULL CHECK (status IN ('pending', 'completed', 'failed')),
+  mechanical_outcome_json TEXT CHECK (mechanical_outcome_json IS NULL OR json_valid(mechanical_outcome_json)),
+  recovery_attempts INTEGER NOT NULL DEFAULT 0 CHECK (recovery_attempts >= 0),
+  last_recovery_at TEXT,
+  completed_at TEXT
+) STRICT;
+
+CREATE TABLE room_projections (
+  room_session_id TEXT NOT NULL REFERENCES room_sessions(room_session_id) ON DELETE RESTRICT,
+  audience_kind TEXT NOT NULL CHECK (audience_kind IN ('public_tv', 'participant_private', 'player_host_operational', 'server_internal')),
+  audience_key TEXT NOT NULL,
+  view_revision INTEGER NOT NULL CHECK (view_revision >= 0),
+  canonical_json TEXT NOT NULL CHECK (json_valid(canonical_json)),
+  stored_at TEXT NOT NULL,
+  PRIMARY KEY (room_session_id, audience_kind, audience_key)
+) STRICT;
+
+CREATE TABLE room_projection_deltas (
+  room_session_id TEXT NOT NULL REFERENCES room_sessions(room_session_id) ON DELETE RESTRICT,
+  audience_key TEXT NOT NULL,
+  base_view_revision INTEGER NOT NULL CHECK (base_view_revision >= 0),
+  target_view_revision INTEGER NOT NULL CHECK (target_view_revision = base_view_revision + 1),
+  canonical_json TEXT NOT NULL CHECK (json_valid(canonical_json)),
+  stored_at TEXT NOT NULL,
+  PRIMARY KEY (room_session_id, audience_key, target_view_revision)
+) STRICT;
+
+CREATE TABLE relay_sessions (
+  room_session_id TEXT PRIMARY KEY REFERENCES room_sessions(room_session_id) ON DELETE CASCADE,
+  relay_room_id TEXT NOT NULL,
+  relay_endpoint TEXT NOT NULL,
+  appliance_token_ciphertext TEXT NOT NULL,
+  invite_secret_ciphertext TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+) STRICT;
+
+CREATE INDEX room_events_by_transaction ON room_events(room_transaction_id, transaction_index);
+CREATE INDEX room_transactions_by_revision ON room_transactions(room_session_id, first_room_revision, last_room_revision);
+CREATE INDEX mechanical_workflows_pending ON mechanical_workflows(room_session_id, status);
+CREATE INDEX room_deltas_by_audience ON room_projection_deltas(room_session_id, audience_key, target_view_revision);
+PRAGMA user_version = 2;
+`.trim();
+
 export interface SqliteMigration {
   readonly version: number;
   readonly name: string;
@@ -124,6 +250,12 @@ export const SQLITE_MIGRATIONS: readonly SqliteMigration[] = Object.freeze([
     name: "phase_1_event_store",
     checksum: taggedSha256(MIGRATION_1_SQL),
     sql: MIGRATION_1_SQL,
+  }),
+  Object.freeze({
+    version: 2,
+    name: "phase_2_room_stream",
+    checksum: taggedSha256(MIGRATION_2_SQL),
+    sql: MIGRATION_2_SQL,
   }),
 ]);
 

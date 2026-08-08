@@ -1,6 +1,6 @@
 # Phase 2 — Room Shell, PWA, and TV
 
-**Status:** Planned; ready for implementation
+**Status:** Application, appliance, and automated acceptance complete locally; deployment and physical-device exit evidence pending
 
 **Parent plan:** [PRIMARY_PLAN.md](../../PRIMARY_PLAN.md)
 
@@ -404,26 +404,26 @@ Use these status meanings: **Complete**, **Ready**, **Pending**, and **Blocked**
 
 | Task | Summary | Depends on | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| P2-001 | Verify the Phase 2 baseline and guardrails | Phase 1 complete | Ready | Not yet implemented. |
-| P2-010 | Create package/application shells and proposed ADR-0003 | P2-001 | Pending | Not yet implemented. |
-| P2-020 | Separate client, room, game, and event contract layers | P2-010 | Pending | Not yet implemented. |
-| P2-021 | Define room state, guided presentation, and combined projections | P2-020 | Pending | Not yet implemented. |
-| P2-022 | Define relay control and transport protocol contracts | P2-020 | Pending | Not yet implemented. |
-| P2-030 | Implement migration 2 and replayable room coordination | P2-021 | Pending | Not yet implemented. |
-| P2-031 | Implement privacy-safe combined projections and delta rebuild | P2-021, P2-030 | Pending | Not yet implemented. |
-| P2-032 | Implement durable client-to-engine workflows and recovery | P2-030, P2-031 | Pending | Not yet implemented. |
-| P2-040 | Author the six-hero Phase 2 mechanical manifest and party-size variants | P2-021 | Pending | Not yet implemented. |
-| P2-041 | Author and execute the deterministic guided slice with fake text providers | P2-032, P2-040 | Pending | Not yet implemented. |
-| P2-050 | Build the Fastify appliance host and local TV boundary | P2-022, P2-032, P2-041 | Pending | Not yet implemented. |
-| P2-051 | Build the Worker/Durable Object relay and static PWA delivery | P2-022 | Pending | Not yet implemented. |
-| P2-052 | Integrate live relay join, approval, host transfer, and reconnect | P2-050, P2-051 | Pending | Not yet implemented. |
-| P2-060 | Build the browser-first React PWA shell and transport client | P2-022, P2-052 | Pending | Not yet implemented. |
-| P2-061 | Implement phone gameplay, rehearsal, die, reaction, and correction UX | P2-041, P2-060 | Pending | Not yet implemented. |
-| P2-062 | Implement TV narration, lobby, recovery, and deterministic zone map | P2-041, P2-060 | Pending | Not yet implemented. |
-| P2-070 | Assemble Docker Compose and Chromium kiosk startup | P2-052, P2-060, P2-061, P2-062 | Pending | Not yet implemented. |
-| P2-071 | Automate three-, four-, and five-participant room/recovery flows | P2-061, P2-062, P2-070 | Pending | Not yet implemented. |
-| P2-072 | Run two-phone rehearsal and three-to-five-phone exit signoff | P2-071 | Pending | Not yet implemented. |
-| P2-080 | Complete references, accept ADR-0003, and run the exit audit | P2-072 | Pending | Not yet implemented. |
+| P2-001 | Verify the Phase 2 baseline and guardrails | Phase 1 complete | Complete | Preserved the five-workspace Phase 1 baseline, migration 1 and manifest literals; the historical exit baseline remains 217 tests. |
+| P2-010 | Create package/application shells and proposed ADR-0003 | P2-001 | Complete | Ten private workspaces typecheck; package-boundary searches pass; ADR-0003 is truthfully Proposed. |
+| P2-020 | Separate client, room, game, and event contract layers | P2-010 | Complete | Central strict `ClientCommand`, `RoomCommand`, `RoomEvent`, `GameCommand`, and `GameEvent` unions pass contract fixtures and exhaustive tests. |
+| P2-021 | Define room state, guided presentation, and combined projections | P2-020 | Complete | Room/guided/combined projection schemas and negative visibility/delta fixtures pass the contract suite. |
+| P2-022 | Define relay control and transport protocol contracts | P2-020 | Complete | Protocol v1 relay/token/control/transport schemas, bounds, and strict fixtures pass tests and Wrangler type generation. |
+| P2-030 | Implement migration 2 and replayable room coordination | P2-021 | Complete | Migration 2 checksum is `sha256:38b882c242fb41685ef4004239d9a3e27211f81573a4a44f5031ddb06beafb27`; migration/reopen/replay/coordinator tests pass. |
+| P2-031 | Implement privacy-safe combined projections and delta rebuild | P2-021, P2-030 | Complete | Runtime projection tests cover audience filtering, snapshots, contiguous deltas, snapshot fallback, and rebuild. |
+| P2-032 | Implement durable client-to-engine workflows and recovery | P2-030, P2-031 | Complete | Runtime failure-injection tests cover crashes after room start and game commit, exact retry, and reaction deadline pause/resume/timeout. |
+| P2-040 | Author the six-hero Phase 2 mechanical manifest and party-size variants | P2-021 | Complete | Six starters and authored 3/4/5 objective/reinforcement variants validate; mechanical hash is `sha256:8231d8b34a1e531af298e87c360c7f43e47575a359e04777b6172951656300b7`. |
+| P2-041 | Author and execute the deterministic guided slice with fake text providers | P2-032, P2-040 | Complete | Guided graph and fake-provider tests pass; host integration reaches a replayed withdrawal conclusion through engine transactions. |
+| P2-050 | Build the Fastify appliance host and local TV boundary | P2-022, P2-032, P2-041 | Complete | Host lifecycle, random-seed guard, diagnostics redaction, TV fallback, room replay, and restart smoke pass. |
+| P2-051 | Build the Worker/Durable Object relay and static PWA delivery | P2-022 | Complete | Relay tests cover create/join/approval/routing/reconnect/rate/frame/origin/expiry behavior; `pnpm config:check` passes. |
+| P2-052 | Integrate live relay join, approval, host transfer, and reconnect | P2-050, P2-051 | Complete | Host/relay integration tests cover bootstrap, approvals, transfer/recovery, replacement connections, and filtered resync. |
+| P2-060 | Build the browser-first React PWA shell and transport client | P2-022, P2-052 | Complete | Web component/transport tests and Vite production build pass; reconnect records are room-scoped in IndexedDB. |
+| P2-061 | Implement phone gameplay, rehearsal, die, reaction, and correction UX | P2-041, P2-060 | Complete | React tests cover role views and mechanical controls; phone route exposes explicit preview/confirm, Spark, die, reaction, correction, and rehearsal controls. |
+| P2-062 | Implement TV narration, lobby, recovery, and deterministic zone map | P2-041, P2-060 | Complete | TV/component tests cover startup and role routing; deterministic SVG/text map, public history, disclosure, and recovery states are implemented. |
+| P2-070 | Assemble Docker Compose and Chromium kiosk startup | P2-052, P2-060, P2-061, P2-062 | Complete | Compose/config and shell syntax pass; final-source image `sha256:b84cca0bcfb405b689b2f9ebec39e2c29cde03d7e0d9d45bf50263aec74ea808` builds, and test-owned Compose migrate/start/ready/restart plus appliance restart smoke pass. |
+| P2-071 | Automate three-, four-, and five-participant room/recovery flows | P2-061, P2-062, P2-070 | Complete | 254 Vitest tests in 40 files pass. Ten ordered Chromium scenarios pass with TV plus isolated 3/4/5-player contexts, full UI terminal paths, rehearsal, claim races, no-LAN assertions, both host crash boundaries, relay/host restart, reaction pause/timeout, correction, physical-roll reload, explicit resume, and deterministic fail-forward coverage. |
+| P2-072 | Run two-phone rehearsal and three-to-five-phone exit signoff | P2-071 | Blocked | Requires a reviewed household Cloudflare deployment, two physical rehearsal phones, and at least three simultaneous physical phones; no manual result is claimed. |
+| P2-080 | Complete references, accept ADR-0003, and run the exit audit | P2-072 | Blocked | Generated Phase 2 references and primary-plan alignment are current; ADR acceptance and the final exit audit remain gated by P2-072. |
 
 The critical path is:
 
@@ -555,7 +555,7 @@ Do not interpret this tree as permission to move Phase 1 mechanical reducers, SQ
 
 ### P2-001 — Verify the Phase 2 baseline and planning guardrails
 
-**Status:** Ready
+**Status:** Complete
 
 **Depends on:** Completed Phase 1
 
@@ -587,7 +587,7 @@ git status --short
 
 ### P2-010 — Create package/application shells and proposed ADR-0003
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-001
 
@@ -638,7 +638,7 @@ if rg -n "@lldm/engine|better-sqlite3|kysely" apps/host/src; then exit 1; fi
 
 ### P2-020 — Separate client, room, game, and event contract layers
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-010
 
@@ -674,7 +674,7 @@ rg -n "export (const|type) (ClientCommand|RoomCommand|RoomEvent|GameCommand|Game
 
 ### P2-021 — Define room state, guided presentation, and combined projections
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-020
 
@@ -703,7 +703,7 @@ pnpm typecheck
 
 ### P2-022 — Define relay control and transport protocol contracts
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-020
 
@@ -732,7 +732,7 @@ pnpm config:check
 
 ### P2-030 — Implement migration 2 and replayable room coordination
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-021
 
@@ -768,7 +768,7 @@ pnpm test -- phase-1-e2e
 
 ### P2-031 — Implement privacy-safe combined projections and delta rebuild
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-021, P2-030
 
@@ -797,7 +797,7 @@ pnpm test -- projection
 
 ### P2-032 — Implement durable client-to-engine workflows and recovery
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-030, P2-031
 
@@ -829,7 +829,7 @@ pnpm typecheck
 
 ### P2-040 — Author the six-hero Phase 2 mechanical manifest and party-size encounter variants
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-021
 
@@ -860,7 +860,7 @@ pnpm docs:check
 
 ### P2-041 — Author and execute the deterministic guided slice with fake text providers
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-032, P2-040
 
@@ -892,7 +892,7 @@ pnpm docs:check
 
 ### P2-050 — Build the Fastify appliance host and local TV boundary
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-022, P2-032, P2-041
 
@@ -925,7 +925,7 @@ if rg -n "@lldm/engine|better-sqlite3|kysely" apps/host/src; then exit 1; fi
 
 ### P2-051 — Build the Worker/Durable Object relay and static PWA delivery
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-022
 
@@ -960,7 +960,7 @@ The final command may be represented by an automated local Worker smoke script r
 
 ### P2-052 — Integrate live relay join, approval, host transfer, and reconnect
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-050, P2-051
 
@@ -991,7 +991,7 @@ pnpm test -- phase-2-relay-host
 
 ### P2-060 — Build the browser-first React PWA shell and transport client
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-022, P2-052
 
@@ -1026,7 +1026,7 @@ if rg -n "@lldm/(engine|runtime|content)|node:" apps/web/src; then exit 1; fi
 
 ### P2-061 — Implement phone gameplay, rehearsal, die, reaction, and correction UX
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-041, P2-060
 
@@ -1059,7 +1059,7 @@ pnpm --filter @lldm/web typecheck
 
 ### P2-062 — Implement TV narration, lobby, recovery, and deterministic zone map
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-041, P2-060
 
@@ -1090,7 +1090,7 @@ pnpm --filter @lldm/web build
 
 ### P2-070 — Assemble Docker Compose and Chromium kiosk startup
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-052, P2-060, P2-061, P2-062
 
@@ -1125,7 +1125,7 @@ Use test-owned temporary data/secrets. Do not point smoke tests at a household d
 
 ### P2-071 — Automate three-, four-, and five-participant room/recovery flows
 
-**Status:** Pending
+**Status:** Complete
 
 **Depends on:** P2-061, P2-062, P2-070
 
@@ -1154,6 +1154,8 @@ At minimum automate:
 
 Use fixed seeds/clocks only in automated fixtures. Add one separate test proving the normal UI cannot request a fixed seed.
 
+**Evidence:** `apps/web/e2e/phase-2.spec.ts` runs ten ordered Chromium scenarios against a real local Worker, host process, and test-owned temporary SQLite database. The scenarios cover the sixteen minimum cases across full 3/4/5-player UI runs and focused startup, isolation, rehearsal, claim-race, and explicit-resume checks. Test-only controls inject crashes after room-workflow start and after game commit, then restart the host and verify exact recovery; the same harness restarts the relay and proves a filtered snapshot restores presentation without changing the mechanical revision. The three-player fixed-seed run reaches challenge fail-forward and clean success, while four- and five-player runs reach recorded withdrawal; focused engine/guided tests retain combat-defeat and every outcome-band coverage. On 2026-08-08, `pnpm playwright test --project=chromium` passed 10 tests in 1.4 minutes, and `pnpm verify` plus `pnpm test -- phase-2` passed 254 tests in 40 files.
+
 **Acceptance criteria**
 
 - All three party sizes complete through independent contexts and their correct authored encounter variant.
@@ -1173,7 +1175,7 @@ pnpm config:check
 
 ### P2-072 — Run two-phone rehearsal and three-to-five-phone exit signoff
 
-**Status:** Pending
+**Status:** Blocked
 
 **Depends on:** P2-071
 
@@ -1206,7 +1208,7 @@ The manual database path and campaign ID must be resolved explicitly. Never use 
 
 ### P2-080 — Complete references, accept ADR-0003, and run the exit audit
 
-**Status:** Pending
+**Status:** Blocked
 
 **Depends on:** P2-072
 
@@ -1246,6 +1248,18 @@ git status --short
 ```
 
 Live deployment and manual device steps use the documented explicit commands for the configured household environment and must not print credentials.
+
+### 9.1 Recorded implementation deviations
+
+Repository evidence exposed three narrow contradictions between the locked guided slice and the Phase 1 content/command surface. The implementation resolves them inside the authoritative typed engine rather than mutating state in the host:
+
+- The Phase 1 example ritual requires a specific Phase 1 hero's gear and only two participants, so it cannot satisfy the Phase 2 requirement that a selected three-to-five-hero party perform the Floodgate ritual. Phase 2 adds a clean-room Floodgate Relief ritual definition requiring three participants, one fictional requirement tag, and one Supply. The separate Phase 1 manifest and ritual remain unchanged.
+- Fresh Phase 1 campaigns start with zero Supply, while the locked Phase 2 ritual must spend one Supply and the host may not manufacture a resource event. A one-use `provision_starting_supply` `GameCommand` now materializes Supply equal to the fully selected party size through the existing `resource_changed` event before guided play starts.
+- The Phase 1 event union already models `combat_resolved` with `heroes_withdrew`, but no legal command could produce it. A `withdraw_from_combat` `GameCommand`, reached only through the bounded `withdraw_combat` client intent, validates active combat and emits that existing canonical outcome.
+- The Phase 1 start-combat rule requires every present actor to begin fresh, while the locked four- and five-hero variants require reinforcements that are not yet present. Enemy combat participants now carry an optional typed `reinforcement_trigger`; the reducer admits them only from the recorded round-advance or objective-advance event, and public projections omit them before that trigger.
+- The Phase 1 spillway objective is pinned to threshold 3, while the locked authored four- and five-hero variants require distinct objective pressure without changing actor statistics. Phase 2 adds threshold-4 and threshold-5 objective definitions plus matching boss overlays and pins each variant to the appropriate references. The Phase 1 objective and overlay remain unchanged.
+
+All five changes are versioned, strictly validated, transaction-coordinated, replayable engine paths. They add no host-side mechanical mutation and do not rewrite Phase 1 manifest or migration literals.
 
 ## 10. Automated and Manual Test Matrix
 

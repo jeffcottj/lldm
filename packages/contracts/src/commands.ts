@@ -11,6 +11,7 @@ import {
   ResolveReactionCommandSchema,
   SelectEnemyFallbackCommandSchema,
   StartCombatCommandSchema,
+  WithdrawFromCombatCommandSchema,
 } from "./domains/combat.js";
 import {
   AdvanceChallengeCommandSchema,
@@ -20,6 +21,7 @@ import {
   AdvanceRankCommandSchema,
   AdvanceSceneCommandSchema,
   MaterializeCharacterCommandSchema,
+  ProvisionStartingSupplyCommandSchema,
   RecoverResourceCommandSchema,
   RecoverSparkComplicationCommandSchema,
   SpendResourceCommandSchema,
@@ -43,6 +45,7 @@ export const GameCommandSchema = Type.Union([
   ResolveCheckCommandSchema,
   SubmitDieResultCommandSchema,
   MaterializeCharacterCommandSchema,
+  ProvisionStartingSupplyCommandSchema,
   SpendResourceCommandSchema,
   RecoverResourceCommandSchema,
   RecoverSparkComplicationCommandSchema,
@@ -53,6 +56,7 @@ export const GameCommandSchema = Type.Union([
   ChooseHeroActivationCommandSchema,
   ExecuteCombatActionCommandSchema,
   SelectEnemyFallbackCommandSchema,
+  WithdrawFromCombatCommandSchema,
   OpenReactionWindowCommandSchema,
   ResolveReactionCommandSchema,
   AidDeathTestCommandSchema,
@@ -68,7 +72,4 @@ export const GameCommandSchema = Type.Union([
   InterruptRitualCommandSchema,
   UndoTransactionCommandSchema,
 ]);
-export { GameCommandSchema as ClientCommandSchema };
-
 export type GameCommand = Static<typeof GameCommandSchema>;
-export type ClientCommand = GameCommand;

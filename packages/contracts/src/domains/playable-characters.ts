@@ -378,6 +378,11 @@ export const MaterializeCharacterCommandSchema = commandEnvelope(
   }),
 );
 
+export const ProvisionStartingSupplyCommandSchema = commandEnvelope(
+  Type.Literal("provision_starting_supply"),
+  strictObject({}),
+);
+
 export const SpendResourceCommandSchema = commandEnvelope(
   Type.Literal("spend_resource"),
   strictObject({

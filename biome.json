@@ -5,7 +5,10 @@
       "**",
       "!!**/node_modules",
       "!!**/dist",
+      "!!**/dist-*",
       "!!**/coverage",
+      "!!**/.wrangler",
+      "!!test-results",
       "!!types/wrangler.d.ts"
     ]
   },

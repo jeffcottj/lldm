@@ -30,7 +30,7 @@ describe("SQLite migration registry and backups", () => {
     expect(readMigrationStatus(before)).toEqual({
       status: "pending",
       current_version: 0,
-      pending_versions: [1],
+      pending_versions: [1, 2],
     });
     before.close();
 
@@ -40,7 +40,7 @@ describe("SQLite migration registry and backups", () => {
     });
     expect(result).toMatchObject({
       status: "migrated",
-      applied_versions: [1],
+      applied_versions: [1, 2],
     });
     expect(result.backup_path).not.toBeNull();
     if (result.backup_path === null) return;
@@ -53,7 +53,7 @@ describe("SQLite migration registry and backups", () => {
     expect(readMigrationStatus(backup)).toEqual({
       status: "pending",
       current_version: 0,
-      pending_versions: [1],
+      pending_versions: [1, 2],
     });
     expect(backup.pragma("integrity_check", { simple: true })).toBe("ok");
     backup.close();
@@ -61,9 +61,9 @@ describe("SQLite migration registry and backups", () => {
     const migrated = new Database(path);
     expect(readMigrationStatus(migrated)).toEqual({
       status: "current",
-      current_version: 1,
+      current_version: 2,
     });
-    expect(migrated.pragma("user_version", { simple: true })).toBe(1);
+    expect(migrated.pragma("user_version", { simple: true })).toBe(2);
     expect(migrated.pragma("integrity_check", { simple: true })).toBe("ok");
     migrated.close();
     expect(statSync(path).mode & 0o777).toBe(0o600);
@@ -95,6 +95,70 @@ describe("SQLite migration registry and backups", () => {
     rolledBack.close();
 
     expect(migrateSqliteDatabase(options).status).toBe("migrated");
+  });
+
+  it("upgrades an intact migration-1 database through a verified backup", () => {
+    const path = temporaryDatabase("phase-1.sqlite");
+    const phase1 = new Database(path);
+    const migration1 = SQLITE_MIGRATIONS[0];
+    if (migration1 === undefined)
+      throw new Error("Migration 1 is unavailable.");
+    phase1.exec(migration1.sql);
+    phase1
+      .prepare(
+        "INSERT INTO schema_migrations(version, name, checksum, applied_at, success) VALUES (?, ?, ?, ?, 1)",
+      )
+      .run(
+        migration1.version,
+        migration1.name,
+        migration1.checksum,
+        "2026-08-07T19:01:30.000Z",
+      );
+    expect(readMigrationStatus(phase1)).toEqual({
+      status: "pending",
+      current_version: 1,
+      pending_versions: [2],
+    });
+    phase1.close();
+
+    const result = migrateSqliteDatabase({
+      database_path: path,
+      committed_at: "2026-08-07T19:01:31.000Z",
+    });
+    expect(result).toMatchObject({ status: "migrated", applied_versions: [2] });
+    if (result.backup_path === null)
+      throw new Error("Upgrade backup is missing.");
+    const backup = new Database(result.backup_path, {
+      readonly: true,
+      fileMustExist: true,
+    });
+    expect(readMigrationStatus(backup)).toEqual({
+      status: "pending",
+      current_version: 1,
+      pending_versions: [2],
+    });
+    expect(
+      backup
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'room_sessions'",
+        )
+        .get(),
+    ).toBeUndefined();
+    backup.close();
+
+    const upgraded = new Database(path);
+    expect(readMigrationStatus(upgraded)).toEqual({
+      status: "current",
+      current_version: 2,
+    });
+    expect(
+      upgraded
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'room_sessions'",
+        )
+        .get(),
+    ).toEqual({ name: "room_sessions" });
+    upgraded.close();
   });
 
   it("reports failed, corrupt, future, and incompatible registries without mutation", () => {
@@ -134,7 +198,7 @@ describe("SQLite migration registry and backups", () => {
       {
         expected: "future",
         setup(database: Database.Database) {
-          database.pragma("user_version = 2");
+          database.pragma("user_version = 3");
         },
       },
       {

@@ -7,7 +7,7 @@ import {
 } from "@lldm/contracts";
 import {
   PHASE_1_CONTENT_MANIFEST_HASH,
-  PHASE_1_DEFINITIONS,
+  definitionsForAnyManifest,
 } from "@lldm/content";
 import { decideCommand } from "@lldm/engine";
 import type {
@@ -49,16 +49,25 @@ export const authoritativeEngineDecider: EngineDeciderPort = {
 };
 
 export const phase1ContentManifestPort = {
-  resolve: (hash: string) =>
-    hash === PHASE_1_CONTENT_MANIFEST_HASH
-      ? {
-          content_manifest_hash: PHASE_1_CONTENT_MANIFEST_HASH,
-          definitions: PHASE_1_DEFINITIONS,
-        }
-      : null,
+  resolve: (hash: string) => {
+    const definitions = definitionsForAnyManifest(
+      hash as typeof PHASE_1_CONTENT_MANIFEST_HASH,
+    );
+    return definitions === undefined
+      ? null
+      : {
+          content_manifest_hash: hash as typeof PHASE_1_CONTENT_MANIFEST_HASH,
+          definitions,
+        };
+  },
 };
 
-export { PHASE_1_CONTENT_MANIFEST_HASH };
+export const authoritativeContentManifestPort = phase1ContentManifestPort;
+
+export {
+  PHASE_1_CONTENT_MANIFEST_HASH,
+  PHASE_2_CONTENT_MANIFEST_HASH,
+} from "@lldm/content";
 
 export const emptyProjectionPort: ProjectionPort = {
   project: () => [],

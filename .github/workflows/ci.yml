@@ -21,7 +21,7 @@ jobs:
       - name: Use repository pnpm version
         run: |
           corepack enable
-          corepack prepare pnpm@11.13.0 --activate
+          corepack prepare pnpm@11.13.1 --activate
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
       - name: Check formatting
@@ -32,5 +32,11 @@ jobs:
         run: pnpm typecheck
       - name: Test
         run: pnpm test
+      - name: Build browser assets
+        run: pnpm --filter @lldm/web build
+      - name: Check deployment configuration
+        run: pnpm config:check
+      - name: Discover browser scenarios
+        run: pnpm playwright:check
       - name: Check generated documentation
         run: pnpm docs:check
