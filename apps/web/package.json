@@ -1,0 +1,24 @@
+{
+  "name": "@lldm/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "test": "vitest --config ../../vitest.config.ts run apps/web/src",
+    "typecheck": "tsc --build"
+  },
+  "dependencies": {
+    "@lldm/contracts": "workspace:*",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.5",
+    "fake-indexeddb": "6.2.5",
+    "vite": "8.2.1"
+  }
+}

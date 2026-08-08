@@ -1,0 +1,358 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  background: #07161a;
+  color: #f3f2e8;
+  font-size: 18px;
+  --ink: #f3f2e8;
+  --muted: #b9c9c8;
+  --panel: #102b33;
+  --panel-2: #183c42;
+  --accent: #f4c96b;
+  --focus: #78ddcf;
+  --danger: #ffac9f;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+button,
+input,
+textarea {
+  font: inherit;
+}
+button {
+  min-height: 48px;
+  border: 1px solid #6a8789;
+  border-radius: 0.65rem;
+  padding: 0.7rem 1rem;
+  background: var(--panel-2);
+  color: var(--ink);
+  cursor: pointer;
+}
+button:hover {
+  border-color: var(--accent);
+}
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+button.selected,
+button[aria-pressed="true"],
+.primary-action {
+  color: #07161a;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 750;
+}
+input,
+textarea {
+  width: 100%;
+  border: 1px solid #6a8789;
+  border-radius: 0.5rem;
+  padding: 0.7rem;
+  color: var(--ink);
+  background: #061215;
+}
+textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--muted);
+}
+label span,
+.fine-print {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+.eyebrow {
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+.phone-shell {
+  width: min(100%, 48rem);
+  min-height: 100vh;
+  margin: auto;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem
+    max(2rem, env(safe-area-inset-bottom));
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+.phone-shell > section,
+.host-drawer,
+.recent-events,
+.confirmation {
+  padding: 1rem;
+  border: 1px solid #31575b;
+  border-radius: 0.8rem;
+  background: var(--panel);
+}
+.join-screen {
+  max-width: 32rem;
+  align-content: center;
+}
+.phone-header {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+.phone-header h1 {
+  margin-bottom: 0;
+}
+.connection {
+  display: block;
+  color: var(--muted);
+}
+.phase-reconnecting,
+.phase-recovery_required,
+.phase-expired_room,
+.error,
+.rejected {
+  color: var(--danger);
+}
+.card-grid,
+.action-list {
+  display: grid;
+  gap: 0.75rem;
+}
+.hero-card {
+  border-top: 1px solid #31575b;
+  padding-top: 0.8rem;
+}
+.hero-card button {
+  width: 100%;
+}
+.seat-switcher,
+.button-row,
+.host-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.action-list button {
+  display: grid;
+  text-align: left;
+  gap: 0.2rem;
+}
+.action-list span {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+.character-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.character-card dl div {
+  padding: 0.6rem;
+  background: #091e23;
+  border-radius: 0.5rem;
+}
+dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+dd {
+  margin: 0.2rem 0 0;
+  font-size: 1.15rem;
+  font-weight: 750;
+}
+.private-clue {
+  border-left: 0.3rem solid var(--focus);
+  padding: 0.7rem;
+  background: #082126;
+}
+.die-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.die-grid button {
+  padding: 0.4rem;
+}
+.physical-disclosure {
+  overflow-x: auto;
+}
+.outcome-bands {
+  padding-left: 1.25rem;
+}
+.face-map {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(5rem, 1fr));
+  gap: 0.3rem;
+  font-size: 0.75rem;
+}
+.face-map span {
+  padding: 0.35rem;
+  background: #091e23;
+}
+.result {
+  padding: 0.7rem;
+  border-left: 0.3rem solid var(--focus);
+}
+.accepted {
+  color: #b9f3c8;
+}
+.quiet {
+  background: transparent;
+}
+.host-drawer summary,
+.recent-events summary {
+  cursor: pointer;
+  min-height: 44px;
+  font-weight: 750;
+}
+.host-row {
+  align-items: center;
+  margin: 0.5rem 0;
+}
+.host-row span {
+  margin-right: auto;
+}
+.tv-shell {
+  min-height: 100vh;
+  padding: 2.5vh 3vw;
+  display: grid;
+  gap: 2vh;
+  align-content: start;
+  background: radial-gradient(circle at 80% 5%, #24525a, #07161a 55%);
+}
+.tv-header {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: clamp(0.8rem, 1.4vw, 1.15rem);
+}
+.narration h1 {
+  font-size: clamp(2rem, 4.2vw, 4.8rem);
+  max-width: 24ch;
+  line-height: 1.05;
+}
+.public-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+}
+.public-options article,
+.room-roster,
+.recovery-banner {
+  padding: 1rem;
+  background: #102b33dd;
+  border-radius: 0.7rem;
+}
+.join-panel {
+  display: grid;
+  grid-template-columns: 1fr minmax(12rem, 22vw);
+  align-items: center;
+  gap: 2rem;
+}
+.join-panel img {
+  width: 100%;
+  background: white;
+  padding: 0.5rem;
+}
+.zone-map {
+  width: min(100%, 70rem);
+  max-height: 48vh;
+}
+.zone-map rect,
+.zone-map ellipse {
+  fill: #102b33;
+  stroke: #78a5a5;
+  stroke-width: 0.5;
+}
+.zone-map .active rect,
+.zone-map .active ellipse {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+.zone-map text {
+  fill: var(--ink);
+  font-size: 3px;
+  pointer-events: none;
+}
+.zone-map .zone-tags {
+  fill: var(--muted);
+  font-size: 2px;
+}
+.zone-map .active-token {
+  fill: var(--accent);
+  font-weight: bold;
+}
+.zone-map .objective {
+  fill: var(--focus);
+}
+.zone-connection {
+  stroke: #6a8789;
+  stroke-width: 0.7;
+}
+.map-description {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+.room-roster div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.recovery-banner {
+  border-left: 0.4rem solid var(--accent);
+}
+@media (max-width: 600px) {
+  :root {
+    font-size: 16px;
+  }
+  .face-map {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+  }
+}
+@media (prefers-contrast: more) {
+  :root {
+    --muted: #fff;
+    --panel: #000;
+    --panel-2: #000;
+  }
+  button,
+  input,
+  textarea,
+  .phone-shell > section {
+    border-width: 2px;
+  }
+}

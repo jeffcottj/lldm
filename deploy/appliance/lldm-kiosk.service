@@ -1,0 +1,16 @@
+[Unit]
+Description=LLDM living-room Chromium kiosk
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lldm-kiosk
+ExecStart=/usr/local/bin/lldm-kiosk
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=graphical.target

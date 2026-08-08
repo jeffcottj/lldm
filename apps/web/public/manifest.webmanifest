@@ -1,0 +1,9 @@
+{
+  "name": "LLDM Floodgate Room",
+  "short_name": "LLDM",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#071b22",
+  "theme_color": "#102b33",
+  "icons": []
+}
